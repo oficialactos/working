@@ -107,7 +107,21 @@ function CustomAudioPlayer({ src }: { src: string }) {
   );
 }
 
+import { Suspense } from 'react';
+
 export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center bg-background min-h-[400px]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#B8924A] border-t-transparent" />
+      </div>
+    }>
+      <ChatContent />
+    </Suspense>
+  );
+}
+
+function ChatContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
