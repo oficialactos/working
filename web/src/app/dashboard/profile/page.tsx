@@ -385,7 +385,7 @@ export default function ProfilePage() {
 
                   const commonStyles = "w-full text-left group flex items-center gap-6 p-6 rounded-[2rem] bg-card border border-border hover:border-[#B8924A]/30 hover:bg-[#B8924A]/[0.04] transition-all outline-none";
 
-                  if (item.target) {
+                  if ('target' in item) {
                     return (
                       <Link key={item.title} href={item.target} className={commonStyles}>
                         {content}
