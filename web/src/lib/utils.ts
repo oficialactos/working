@@ -1,16 +1,16 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
 /**
- * Standalone utility to safely merge class names.
- * Removes dependencies on 'clsx' and 'tailwind-merge' to ensure
- * the project builds in restricted environments.
+ * Safely merges class names with Tailwind CSS support.
+ * Uses clsx for conditional classes and tailwind-merge to handle collisions.
  */
-export function cn(...inputs: any[]) {
-  return inputs
-    .flat()
-    .filter(Boolean)
-    .join(" ")
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
 export function formatName(name?: string | null, fallback: string = 'Usuário') {
   if (!name || name.includes('@')) return fallback;
   return name;
 }
+
