@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ─── Dark Theme (Default) ─────────────────────────────────── */
+    --background: 220 25% 4%;        /* #07090E deep navy-black */
+    --foreground: 210 20% 95%;       /* near white */
+    --card: 220 22% 6%;              /* #0C1018 */
+    --card-foreground: 210 20% 95%;
+    --popover: 220 22% 7%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 216 31% 11%;          /* #141B25 navy */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 18% 9%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 18% 9%;
+    --muted-foreground: 220 10% 48%;
+    --accent: 40 44% 51%;            /* #B8924A gold */
+    --accent-foreground: 220 25% 4%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 16% 13%;           /* border-white/[0.06] approximate */
+    --input: 220 18% 9%;
+    --ring: 40 44% 51%;
+    --radius: 0.875rem;
+
+    --chart-1: 40 44% 51%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 143 62% 43%;
+    --chart-4: 27 87% 60%;
+    --chart-5: 262 83% 58%;
+
+    /* Theme-aware patterns & effects */
+    --pattern-color: rgba(255, 255, 255, 0.025);
+    --dot-color: rgba(255, 255, 255, 0.06);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --sidebar-bg: 220 22% 6%;
+  }
+
+  /* ─── Light Mode Overrides ─────────────────────────────────── */
+  html.light {
+    --background:  210 40% 98%;      /* #F8FAFC very light slate */
+    --foreground:  220 25% 10%;
+    --card:        0 0% 100%;
+    --card-foreground: 220 25% 10%;
+    --popover:     0 0% 100%;
+    --popover-foreground: 220 25% 10%;
+    --primary:     216 31% 11%;
+    --primary-foreground: 0 0% 98%;
+    --secondary:   210 40% 96%;
+    --secondary-foreground: 220 25% 10%;
+    --muted:       210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent:      40 44% 51%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border:      214 32% 91%;
+    --input:       210 40% 96%;
+    --ring:        40 44% 51%;
+
+    /* Theme-aware patterns & effects (Light) */
+    --pattern-color: rgba(0, 0, 0, 0.02);
+    --dot-color: rgba(0, 0, 0, 0.04);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.06);
+    --sidebar-bg: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* ─── Typography ──────────────────────────────────────────── */
+.text-display {
+  @apply font-black tracking-tighter leading-[1.05];
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #d4af71 0%, #f5d08a 40%, #b8924a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-silver {
+  background: linear-gradient(135deg, #a0a0a0 0%, #ffffff 50%, #909090 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Background patterns ──────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pattern-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-dot {
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ─── Glow ─────────────────────────────────────────────────── */
+.glow-gold {
+  box-shadow: 0 0 30px rgba(184, 146, 74, 0.35), 0 0 60px rgba(184, 146, 74, 0.12);
+}
+
+.glow-gold-sm {
+  box-shadow: 0 0 14px rgba(184, 146, 74, 0.2), 0 0 28px rgba(184, 146, 74, 0.07);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 24px rgba(184, 146, 74, 0.55);
+}
+
+/* ─── Glassmorphism ────────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ─── Gradient border card ─────────────────────────────────── */
+.border-gradient-gold {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+    linear-gradient(135deg, rgba(184, 146, 74, 0.5) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(184, 146, 74, 0.5) 100%) border-box;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 146, 74, 0.2);
+  border-radius: 4px;
+}
+
+/* ─── Animations ───────────────────────────────────────────── */
+.transition-uber {
+  @apply transition-all duration-300;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes shimmer-gold {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes blob {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -50px) scale(1.1); }
+  66%  { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(-4%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50%       { transform: none;           animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+
+@keyframes border-beam {
+  100% { offset-distance: 100%; }
+}
+
+.animate-blob { animation: blob 9s infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+.animate-bounce-slow  { animation: bounce-slow 4s infinite; }

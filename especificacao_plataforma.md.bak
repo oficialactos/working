@@ -1,0 +1,123 @@
+# 📄 Documento de Especificação: Plataforma Intermediadora de Serviços
+
+## 1. Visão Geral do Sistema
+O sistema é um marketplace de serviços baseado em geolocalização que conecta **Clientes** (quem precisa de um serviço) a **Prestadores** (profissionais autônomos). O modelo de negócio baseia-se em:
+- **SaaS para o Prestador**: Pagamento de mensalidade para visibilidade e uso da plataforma.
+- **Escrow Service**: Garantia de pagamento para a transação dos serviços, onde a plataforma retém o valor até a conclusão.
+
+---
+
+## 2. Perfis de Usuário
+
+### 2.1 Cliente
+*   **Objetivo**: Encontrar profissionais qualificados de forma rápida e segura.
+*   **Cadastro**: Simplificado via Social Login (Google/Apple). Exige dados fiscais e endereço apenas no momento da contratação.
+
+### 2.2 Prestador
+*   **Objetivo**: Receber leads qualificados e gerenciar seu portfólio de serviços.
+*   **Cadastro**: Detalhado, incluindo categorias de atuação, fotos de serviços anteriores e exigência de assinatura ativa para ganhar visibilidade no feed.
+
+---
+
+## 3. Regras de Negócio (RN)
+
+| ID | Regra de Negócio | Descrição |
+|:---|:---|:---|
+| **RN01** | Visibilidade de Orçamentos | Um prestador jamais pode ver o valor ou a descrição da proposta enviada por outro prestador. |
+| **RN02** | Aprovação de Orçamento | Ao aceitar um orçamento, todos os outros orçamentos pendentes para aquela requisição são automaticamente marcados como "Recusados". |
+| **RN03** | Custódia de Pagamento | O valor do serviço é debitado do cliente no aceite da proposta, mas só é liberado ao prestador após o cliente confirmar a conclusão. |
+| **RN04** | Geolocalização Ativa | O sistema deve filtrar serviços em um raio definido pelo cliente (ex: 5km a 50km) ou por cidade específica. |
+| **RN05** | Bloqueio de Inadimplência | Prestadores com a mensalidade do app atrasada não podem visualizar novas requisições ou enviar propostas. |
+
+---
+
+## 4. Requisitos Funcionais (RF)
+
+### 4.1 Módulo do Cliente
+*   **RF01**: Criar requisição com descrição, categoria, fotos/videos e localização.
+*   **RF02**: Visualizar lista de orçamentos recebidos.
+*   **RF03**: Chat em tempo real com prestadores interessados.
+*   **RF04**: Agendar visita técnica presencial.
+*   **RF05**: Realizar pagamento via Pix/Cartão dentro da plataforma.
+*   **RF06**: Avaliar prestador (nota e comentário).
+
+### 4.2 Módulo do Prestador
+*   **RF07**: Feed de serviços abertos baseados em categoria e raio de distância.
+*   **RF08**: Criar portfólio de serviços com fotos/vídeos (Feed).
+*   **RF09**: Enviar proposta com valor e prazo.
+*   **RF10**: Gestão de assinatura da plataforma.
+
+---
+
+## 5. Especificações Técnicas (Tech Stack)
+
+*   **Banco de Dados**: Supabase (PostgreSQL) com extensão **PostGIS** para cálculos geográficos complexos.
+*   **Autenticação**: Supabase Auth (JWT).
+*   **Storage**: Supabase Storage para armazenamento de mídias (Fotos/Vídeos).
+*   **Realtime**: Supabase Realtime (WebSockets) para Chat e notificações instantâneas.
+*   **Pagamentos**: Stripe ou Pagar.me integrado via **Supabase Edge Functions**.
+*   **Frontend Sugerido**: Flutter (Android/iOS) para garantir alta performance em mapas e manipulação de mídias.
+
+---
+
+## 6. Estrutura do Banco de Dados (Principais Tabelas)
+
+```sql
+-- Perfis de usuários (Clientes e Prestadores)
+CREATE TABLE profiles (
+  id uuid REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  role text CHECK (role IN ('client', 'provider')), -- ou usar enum
+  location geography(POINT),
+  bio text,
+  is_active bool DEFAULT true,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Solicitações de serviço criadas por clientes
+CREATE TABLE service_requests (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  client_id uuid REFERENCES profiles(id),
+  status text DEFAULT 'open', -- open, in_progress, completed, cancelled
+  category text,
+  description text,
+  location_point geography(POINT),
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Propostas enviadas por prestadores
+CREATE TABLE proposals (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  request_id uuid REFERENCES service_requests(id),
+  provider_id uuid REFERENCES profiles(id),
+  price numeric,
+  status text DEFAULT 'pending', -- pending, accepted, rejected
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- Mensagens do Chat
+CREATE TABLE messages (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  chat_id uuid, -- Identificador da conversa entre request/provider
+  sender_id uuid REFERENCES profiles(id),
+  content text,
+  created_at timestamp with time zone DEFAULT now()
+);
+```
+
+---
+
+## 7. Segurança e Privacidade (RLS)
+Políticas de Nível de Linha (Row Level Security) implementadas no Supabase:
+1.  **Clientes**: Podem visualizar apenas suas próprias requisições e as propostas recebidas nelas.
+2.  **Prestadores**: Podem visualizar requisições abertas em sua região, mas apenas seus próprios orçamentos enviados.
+3.  **Chat**: O acesso às mensagens é restrito exclusivamente aos dois participantes envolvidos na negociação.
+
+---
+
+## 8. Fluxo Principal (Happy Path)
+
+1.  **Solicitação**: Cliente posta o problema -> Notificação enviada para Prestadores em um raio de X km.
+2.  **Orçamento**: Prestadores enviam propostas ou solicitam visita técnica -> Cliente analisa perfis e portfólios.
+3.  **Contratação**: Cliente aceita uma proposta -> Pagamento entra em custódia (Escrow) -> Chat é liberado para detalhes finos.
+4.  **Execução**: Prestador realiza o serviço no local/data combinados.
+5.  **Finalização**: Cliente marca o serviço como concluído -> Sistema libera o pagamento para o Prestador -> Ambos se avaliam mutuamente.
