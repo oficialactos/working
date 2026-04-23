@@ -10,12 +10,12 @@ import {
   User,
   ArrowLeft,
   Globe,
-  CheckCircle2,
   ArrowRight,
   Building2,
   Fingerprint,
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -36,6 +36,8 @@ function AuthContent() {
   const [razaoSocial, setRazaoSocial] = useState('');
   const [isFetchingCnpj, setIsFetchingCnpj] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
 
   const maskCnpj = (value: string) =>
     value
@@ -77,13 +79,30 @@ function AuthContent() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setDuplicateError(null);
 
     try {
       if (mode === 'register') {
+        // Check CNPJ uniqueness before signup
+        if (role === 'provider' && cnpj) {
+          const rawCnpj = cnpj.replace(/\D/g, '');
+          const { data: existingCnpj } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('cpf_cnpj', rawCnpj)
+            .maybeSingle();
+          if (existingCnpj) {
+            setDuplicateError('Este CNPJ já está cadastrado na plataforma.');
+            return;
+          }
+        }
+
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: `${siteUrl}/auth?mode=login`,
             data: {
               full_name: userName,
               role: role,
@@ -93,10 +112,24 @@ function AuthContent() {
           }
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          const msg = signUpError.message.toLowerCase();
+          if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('email')) {
+            setDuplicateError('Este e-mail já está cadastrado na plataforma.');
+          } else {
+            throw signUpError;
+          }
+          return;
+        }
+
+        // Supabase returns empty identities when email already exists (security behavior)
+        if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+          setDuplicateError('Este e-mail já está cadastrado na plataforma.');
+          return;
+        }
+
         if (data.user) {
-          // Success - Redirect or show confirmation
-          window.location.href = role === 'client' ? '/dashboard/client' : '/dashboard/provider';
+          setEmailSent(true);
         }
       } else {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -110,12 +143,73 @@ function AuthContent() {
           window.location.href = userRole === 'client' ? '/dashboard/client' : '/dashboard/provider';
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro na autenticação.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Ocorreu um erro na autenticação.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md space-y-8 text-center"
+        >
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-2xl bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center">
+              <CheckCircle2 size={40} className="text-[#B8924A]" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="text-4xl font-black tracking-tighter text-foreground">
+              Verifique seu e-mail
+            </h1>
+            <p className="text-muted-foreground font-bold text-sm leading-relaxed">
+              Enviamos um link de confirmação para{' '}
+              <span className="text-foreground font-black">{email}</span>.
+              <br />
+              Clique no link para ativar sua conta.
+            </p>
+          </div>
+
+          <div className="glass rounded-2xl p-5 text-left space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/50">O que fazer agora?</p>
+            {[
+              'Abra sua caixa de entrada',
+              'Procure o e-mail do ServiçosJá',
+              'Clique em "Confirmar e-mail"',
+              'Faça login normalmente',
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span className="w-5 h-5 rounded-full bg-[#B8924A]/15 border border-[#B8924A]/25 flex items-center justify-center text-[10px] font-black text-[#B8924A]">
+                  {i + 1}
+                </span>
+                <span className="text-sm font-bold text-foreground/80">{step}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-xs text-muted-foreground/50 font-bold">
+            Não recebeu?{' '}
+            <button
+              onClick={async () => {
+                await supabase.auth.resend({ type: 'signup', email });
+              }}
+              className="text-[#B8924A] hover:text-[#d4af71] transition-colors underline underline-offset-4"
+            >
+              Reenviar e-mail
+            </button>
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-stretch">
@@ -225,6 +319,25 @@ function AuthContent() {
             )}
 
             <form onSubmit={handleAuth} className="space-y-5">
+              {duplicateError && (
+                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl space-y-3 animate-shake">
+                  <div className="flex items-start gap-3 text-amber-400 text-xs font-bold">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>Já existe uma conta com esses dados. {duplicateError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDuplicateError(null);
+                      setError(null);
+                      setMode('login');
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#B8924A] text-white text-xs font-black hover:bg-[#d4af71] transition-colors flex items-center justify-center gap-2"
+                  >
+                    Ir para login <ArrowRight size={14} />
+                  </button>
+                </div>
+              )}
               {error && (
                 <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-500 text-xs font-bold animate-shake">
                   <AlertCircle size={16} />
@@ -342,6 +455,7 @@ function AuthContent() {
                 onClick={() => {
                   setMode(mode === 'login' ? 'register' : 'login');
                   setError(null);
+                  setDuplicateError(null);
                 }}
                 className="ml-2 text-[#B8924A] font-black hover:text-[#d4af71] transition-colors underline underline-offset-4"
               >

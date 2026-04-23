@@ -3,24 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Camera, 
-  MapPin, 
-  ChevronLeft, 
-  Send,
+import {
+  Camera,
+  MapPin,
+  ChevronLeft,
   X,
-  ChevronRight,
   Info,
   CheckCircle2,
-  AlertCircle,
   Zap,
   ArrowRight,
   Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useEffect } from 'react';
@@ -262,7 +258,7 @@ export default function NewRequestPage() {
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('media')
         .upload(filePath, file);
 
@@ -294,8 +290,33 @@ export default function NewRequestPage() {
 
     setLoading(true);
     const subCatLabel = activeCategory?.subcategories.find(s => s.id === selectedSubCat)?.label || 'Serviço';
-
     const cleanCity = city.split('·').pop()?.split(',')[0].trim() || 'São Paulo';
+
+    // Garante que o perfil existe antes de criar o pedido (o trigger pode não ter rodado)
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          role: 'client',
+          full_name: user?.user_metadata?.full_name || user?.email || '',
+          avatar_url: user?.user_metadata?.avatar_url || null,
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        alert(`Erro ao criar perfil: ${profileError.message}`);
+        setLoading(false);
+        return;
+      }
+    }
 
     const { error } = await supabase
       .from('service_requests')
