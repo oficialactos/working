@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   Plus,
+  CalendarDays,
   Wrench,
   CheckCircle2,
   Sun,
@@ -487,7 +488,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="flex flex-1 justify-around items-center">
           {navItems.slice(0, 2).map((item, index) => {
             const isActive = pathname === item.href;
-            const label = index === 0 ? 'Geral' : 'Pedidos';
+            const label = isProvider
+              ? (index === 0 ? 'Painel' : 'Serviços')
+              : (index === 0 ? 'Geral' : 'Pedidos');
             return (
               <Link
                 key={item.href}
@@ -506,13 +509,27 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
         {/* Central Prominent Button */}
         <div className="flex flex-col items-center justify-center -translate-y-4 gap-1.5">
-          <Link
-            href="/dashboard/client/new"
-            className="w-14 h-14 bg-[#B8924A] rounded-full flex items-center justify-center text-white shadow-[0_8px_20px_rgba(184,146,74,0.3)] active:scale-95 transition-all"
-          >
-            <Plus size={32} />
-          </Link>
-          <span className="text-xs font-bold text-[#B8924A]">Pedir</span>
+          {isProvider ? (
+            <>
+              <Link
+                href="/dashboard/provider/schedule"
+                className="w-14 h-14 bg-[#B8924A] rounded-full flex items-center justify-center text-white shadow-[0_8px_20px_rgba(184,146,74,0.3)] active:scale-95 transition-all"
+              >
+                <CalendarDays size={28} />
+              </Link>
+              <span className="text-xs font-bold text-[#B8924A]">Agenda</span>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/dashboard/client/new"
+                className="w-14 h-14 bg-[#B8924A] rounded-full flex items-center justify-center text-white shadow-[0_8px_20px_rgba(184,146,74,0.3)] active:scale-95 transition-all"
+              >
+                <Plus size={32} />
+              </Link>
+              <span className="text-xs font-bold text-[#B8924A]">Pedir</span>
+            </>
+          )}
         </div>
 
         {/* Right side items */}
