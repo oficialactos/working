@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { usePlatform } from '@/hooks/usePlatform';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -86,14 +87,18 @@ function SettingsContent() {
     checkUser();
   }, []);
 
+  const { isIOS } = usePlatform();
   const isProvider = role === 'provider';
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['personal', 'subscription', 'security', 'notifications'].includes(tab)) {
+    const allowed = isIOS
+      ? ['personal', 'security', 'notifications']
+      : ['personal', 'subscription', 'security', 'notifications'];
+    if (tab && allowed.includes(tab)) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, isIOS]);
 
   const handleSave = async (e: React.SyntheticEvent) => {
     e.preventDefault();

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ServiçosJá</string>
+    <string name="title_activity_main">ServiçosJá</string>
+    <string name="package_name">com.servicosja.app</string>
+    <string name="custom_url_scheme">com.servicosja.app</string>
+</resources>

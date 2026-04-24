@@ -102,7 +102,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'ServiçosJá',
+                    'working',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 32,

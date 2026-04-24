@@ -14,7 +14,6 @@ import {
   User,
   Plus,
   CalendarDays,
-  Wrench,
   CheckCircle2,
   Sun,
   Moon,
@@ -218,10 +217,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         {/* logo */}
         <div className="p-7 pb-3">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 p-2 rounded-xl group-hover:bg-[#B8924A]/20 transition-all">
-              <Wrench size={20} className="text-[#B8924A]" />
-            </div>
-            <span className="text-lg font-black tracking-tighter text-foreground">ServiçosJá</span>
+            <span className="text-lg font-black tracking-tighter leading-none">
+              <span className="text-[#B8924A]">W</span><span className="text-foreground">orking</span>
+            </span>
           </Link>
         </div>
 
@@ -471,10 +469,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           )}
 
           {/* content */}
-          <div className={cn(
-            "flex-1 no-scrollbar",
-            isChatOpen ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 pb-32 md:pb-8 overflow-y-auto"
-          )}>
+          <div
+            className={cn(
+              "flex-1 no-scrollbar",
+              isChatOpen ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
+            )}
+            style={!isChatOpen ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
+          >
             <div className="max-w-[1400px] mx-auto">
               {children}
             </div>
@@ -483,7 +484,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
       {/* ── Mobile Bottom Nav ────────────────────────────────────── */}
       {!isChatOpen && (
-        <nav className="md:hidden fixed bottom-0 inset-x-0 h-20 bg-[#0C1018] border-t border-white/[0.05] z-[60] flex items-center justify-between px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]">
+        <nav
+          className="md:hidden fixed bottom-0 inset-x-0 bg-[#0C1018] border-t border-white/[0.05] z-[60] flex items-center justify-between px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', height: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
         {/* Left side items */}
         <div className="flex flex-1 justify-around items-center">
           {navItems.slice(0, 2).map((item, index) => {

@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Wrench,
   Mail,
   Lock,
   User,
@@ -182,7 +181,7 @@ function AuthContent() {
             <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/50">O que fazer agora?</p>
             {[
               'Abra sua caixa de entrada',
-              'Procure o e-mail do ServiçosJá',
+              'Procure o e-mail do working',
               'Clique em "Confirmar e-mail"',
               'Faça login normalmente',
             ].map((step, i) => (
@@ -232,10 +231,9 @@ function AuthContent() {
 
         <div className="relative z-10 p-20 flex flex-col justify-between h-full">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 p-1.5 rounded-lg">
-              <Wrench size={20} className="text-[#B8924A]" />
-            </div>
-            <span className="text-xl font-black tracking-tighter text-foreground uppercase">ServiçosJá</span>
+            <span className="text-xl font-black tracking-tighter uppercase leading-none">
+              <span className="text-[#B8924A]">W</span><span className="text-foreground">ORKING</span>
+            </span>
           </Link>
 
           <div className="space-y-6">

@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Wrench,
-  ShieldCheck,
   ArrowRight,
   Star,
   Smartphone,
@@ -31,11 +29,6 @@ const categories = [
 ];
 
 const values = [
-  {
-    icon: ShieldCheck,
-    title: 'Pagamento Protegido',
-    desc: 'Seu dinheiro fica guardado com segurança e só é liberado para o profissional após a confirmação do serviço.',
-  },
   {
     icon: Clock,
     title: 'Suporte 24h',
@@ -68,11 +61,10 @@ export default function Home() {
           : 'py-6 bg-transparent',
       )}>
         <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 p-1.5 rounded-lg group-hover:bg-[#B8924A]/20 transition-all">
-              <Wrench size={20} className="text-[#B8924A]" />
-            </div>
-            <span className="text-xl font-black tracking-tighter text-white uppercase">ServiçosJá</span>
+          <Link href="/" className="flex items-center group">
+            <span className="text-xl font-black tracking-tighter uppercase leading-none">
+              <span className="text-[#B8924A]">W</span><span className="hidden sm:inline text-white">ORKING</span>
+            </span>
           </Link>
 
           <div className="flex items-center gap-4 md:gap-8">
@@ -357,11 +349,10 @@ export default function Home() {
       <footer className="py-16 border-t border-white/[0.05]">
         <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2 space-y-5">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 p-1.5 rounded-lg">
-                <Wrench size={18} className="text-[#B8924A]" />
-              </div>
-              <span className="text-lg font-black tracking-tighter text-white uppercase">ServiçosJá</span>
+            <Link href="/" className="flex items-center group">
+              <span className="text-lg font-black tracking-tighter uppercase leading-none">
+                <span className="text-[#B8924A]">W</span><span className="text-white">ORKING</span>
+              </span>
             </Link>
             <p className="max-w-sm text-sm font-medium text-white/35 leading-relaxed">
               Transformando a forma como as pessoas contratam serviços locais através de tecnologia e confiança.
@@ -388,7 +379,7 @@ export default function Home() {
 
         <div className="max-w-[1400px] mx-auto px-6 pt-12 border-t border-white/[0.04] mt-12 flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="text-[10px] font-black uppercase tracking-widest text-white/[0.18]">
-            © 2026 ServiçosJá Tecnologia Ltda.
+            © 2026 working Tecnologia Ltda.
           </span>
           <div className="flex gap-6">
             {['Instagram', 'Twitter', 'LinkedIn'].map((s) => (

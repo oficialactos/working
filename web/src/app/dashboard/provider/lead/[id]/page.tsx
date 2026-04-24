@@ -308,7 +308,7 @@ export default function LeadDetailsPage() {
              <div className="space-y-1 text-center md:text-left">
                <h4 className="text-lg font-black text-foreground tracking-tight">Negociação Direta</h4>
                <p className="text-sm font-bold text-muted-foreground italic leading-relaxed">
-                  Combine o valor, forma de pagamento e o <strong>prazo de execução</strong> diretamente com o cliente através do chat. O ServiçosJá não retém valores nem cobra taxas sobre o serviço.
+                  Combine o valor, forma de pagamento e o <strong>prazo de execução</strong> diretamente com o cliente através do chat. O working não retém valores nem cobra taxas sobre o serviço.
                </p>
              </div>
           </div>
