@@ -154,6 +154,7 @@ function ChatContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMsgTimestamp = useRef<string | null>(null);
   const cameraMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const cameraChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
@@ -204,6 +205,8 @@ function ChatContent() {
   useEffect(() => {
     if (!selectedChatId) return;
 
+    lastMsgTimestamp.current = null;
+
     const fetchMessages = async () => {
       setLoadingMessages(true);
       const { data, error } = await supabase
@@ -214,27 +217,26 @@ function ChatContent() {
 
       if (!error && data) {
         setMessages(data);
+        if (data.length > 0) {
+          lastMsgTimestamp.current = data[data.length - 1].created_at;
+        }
       }
       setLoadingMessages(false);
     };
 
     fetchMessages();
 
-    // Subscribe to new messages
+    // Realtime subscription
     const channel = supabase
       .channel(`chat:${selectedChatId}`)
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `chat_id=eq.${selectedChatId}`
-        },
+        { event: '*', schema: 'public', table: 'messages', filter: `chat_id=eq.${selectedChatId}` },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             setMessages((prev) => {
               if (prev.find(m => m.id === payload.new.id)) return prev;
+              lastMsgTimestamp.current = payload.new.created_at;
               return [...prev, payload.new];
             });
           } else if (payload.eventType === 'UPDATE') {
@@ -246,8 +248,34 @@ function ChatContent() {
       )
       .subscribe();
 
+    // Polling fallback — busca apenas mensagens mais novas que a última conhecida
+    const poll = async () => {
+      const query = supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', selectedChatId)
+        .order('created_at', { ascending: true });
+
+      if (lastMsgTimestamp.current) {
+        query.gt('created_at', lastMsgTimestamp.current);
+      }
+
+      const { data } = await query;
+      if (data && data.length > 0) {
+        lastMsgTimestamp.current = data[data.length - 1].created_at;
+        setMessages((prev) => {
+          const existing = new Set(prev.map(m => m.id));
+          const fresh = data.filter(m => !existing.has(m.id));
+          return fresh.length > 0 ? [...prev, ...fresh] : prev;
+        });
+      }
+    };
+
+    const pollInterval = setInterval(poll, 3000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [selectedChatId]);
 
@@ -283,6 +311,7 @@ function ChatContent() {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       triggerToast('Erro ao enviar mensagem');
     } else if (data) {
+      lastMsgTimestamp.current = data.created_at;
       setMessages(prev => prev.map(m => m.id === tempId ? data : m));
     }
   };
