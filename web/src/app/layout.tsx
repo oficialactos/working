@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CapacitorProvider } from "@/components/CapacitorProvider";
+import { ServiceWorker } from "@/components/ServiceWorker";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <CapacitorProvider>{children}</CapacitorProvider>
+          <ServiceWorker />
         </ThemeProvider>
       </body>
     </html>
