@@ -12,7 +12,7 @@ export function ServiceWorker() {
         if (!next) return;
 
         next.addEventListener('statechange', () => {
-          if (next.state === 'activated') {
+          if (next.state === 'activated' && navigator.serviceWorker.controller) {
             window.location.reload();
           }
         });

@@ -12,14 +12,18 @@ import {
   CheckCircle2,
   Zap,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Video,
+  RotateCcw,
+  Circle,
+  PlusCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const CATEGORIES = [
   { 
@@ -102,6 +106,20 @@ export default function NewRequestPage() {
   const [loading, setLoading] = useState(false);
   const [providerCount, setProviderCount] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  
+  // Camera & Video States
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isRecordingCamera, setIsRecordingCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [capturedVideoBlob, setCapturedVideoBlob] = useState<Blob | null>(null);
+  const [capturedVideoUrl, setCapturedVideoUrl] = useState<string | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  const cameraVideoRef = useRef<HTMLVideoElement>(null);
+  const cameraMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const cameraChunksRef = useRef<Blob[]>([]);
+  const cameraTimerRef = useRef<any>(null);
 
   const [cep, setCep] = useState('');
 
@@ -157,9 +175,12 @@ export default function NewRequestPage() {
         const postcode = data.address.postcode ? data.address.postcode.replace(/\D/g, '') : '';
         
         let suburb = data.address.neighbourhood || 
-                     data.address.quarter || 
                      data.address.suburb || 
                      data.address.city_district || 
+                     data.address.district ||
+                     data.address.village ||
+                     data.address.hamlet ||
+                     data.address.residential ||
                      '';
                        
         let cityStr = data.address.city || data.address.town || data.address.village || '';
@@ -281,6 +302,134 @@ export default function NewRequestPage() {
     setUploading(false);
   };
 
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }, 
+        audio: true 
+      });
+      setCameraStream(stream);
+      setIsCameraOpen(true);
+      setTimeout(() => {
+        if (cameraVideoRef.current) {
+          cameraVideoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (err) {
+      console.error('Erro ao acessar câmera:', err);
+      alert('Não foi possível acessar a câmera. Verifique as permissões.');
+    }
+  };
+
+  const closeCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+    setCameraStream(null);
+    setIsCameraOpen(false);
+    setCapturedImage(null);
+    setCapturedVideoBlob(null);
+    if (capturedVideoUrl) URL.revokeObjectURL(capturedVideoUrl);
+    setCapturedVideoUrl(null);
+    setIsRecordingCamera(false);
+    setRecordingTime(0);
+    clearInterval(cameraTimerRef.current);
+  };
+
+  const takePhoto = () => {
+    if (!cameraVideoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraVideoRef.current.videoWidth;
+    canvas.height = cameraVideoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(cameraVideoRef.current, 0, 0);
+      setCapturedImage(canvas.toDataURL('image/jpeg', 0.8));
+    }
+  };
+
+  const startRecording = () => {
+    if (!cameraStream) return;
+    cameraChunksRef.current = [];
+    const recorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm' });
+    
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) cameraChunksRef.current.push(e.data);
+    };
+
+    recorder.onstop = () => {
+      const blob = new Blob(cameraChunksRef.current, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      setCapturedVideoBlob(blob);
+      setCapturedVideoUrl(url);
+    };
+
+    recorder.start();
+    cameraMediaRecorderRef.current = recorder;
+    setIsRecordingCamera(true);
+    setRecordingTime(0);
+    cameraTimerRef.current = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    if (cameraMediaRecorderRef.current && isRecordingCamera) {
+      cameraMediaRecorderRef.current.stop();
+      setIsRecordingCamera(false);
+      clearInterval(cameraTimerRef.current);
+    }
+  };
+
+  const confirmCapturedMedia = async () => {
+    if (!userId) return;
+    setUploading(true);
+    
+    try {
+      let file: File | Blob;
+      let type: 'image' | 'video';
+      let ext: string;
+
+      if (capturedImage) {
+        const res = await fetch(capturedImage);
+        file = await res.blob();
+        type = 'image';
+        ext = 'jpg';
+      } else if (capturedVideoBlob) {
+        file = capturedVideoBlob;
+        type = 'video';
+        ext = 'webm';
+      } else {
+        return;
+      }
+
+      const fileName = `${Math.random()}.${ext}`;
+      const filePath = `${userId}/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      setImages(prev => [...prev, { url: publicUrl, type }]);
+      closeCamera();
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Erro ao salvar mídia capturada.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const removeMedia = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
@@ -290,7 +439,7 @@ export default function NewRequestPage() {
 
     setLoading(true);
     const subCatLabel = activeCategory?.subcategories.find(s => s.id === selectedSubCat)?.label || 'Serviço';
-    const cleanCity = city.split('·').pop()?.split(',')[0].trim() || 'São Paulo';
+    const fullCity = city || 'São Paulo';
 
     // Garante que o perfil existe antes de criar o pedido (o trigger pode não ter rodado)
     const { data: existingProfile } = await supabase
@@ -326,7 +475,7 @@ export default function NewRequestPage() {
         description: description,
         category: subCatLabel,
         status: 'open',
-        city: cleanCity,
+        city: fullCity,
         address_text: address,
         media_urls: images.map(m => m.url)
       });
@@ -531,53 +680,63 @@ export default function NewRequestPage() {
                      <Camera size={16} /> Fotos e Vídeos do local (Opcional)
                    </label>
                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-                     {images.map((img, i) => (
-                       <div key={i} className="aspect-square relative rounded-[1.5rem] overflow-hidden group shadow-lg border border-border">
-                         {img.type === 'image' ? (
-                           <img src={img.url} className="w-full h-full object-cover" alt="Preview" />
-                         ) : (
-                           <video src={img.url} className="w-full h-full object-cover" />
-                         )}
-                         <button 
-                           onClick={() => removeMedia(i)}
-                           className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-xl shadow-lg transition-all z-20"
-                         >
-                           <X size={14} strokeWidth={3} />
-                         </button>
-                         {img.type === 'video' && (
-                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                             <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
-                               <Zap size={20} className="text-white fill-white" />
-                             </div>
-                           </div>
-                         )}
-                       </div>
-                     ))}
-                     
-                     <label className={cn(
-                       "aspect-square bg-muted border-2 border-dashed border-border rounded-[1.5rem] flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-[#B8924A] hover:border-[#B8924A] hover:bg-amber-500/5 transition-all group cursor-pointer",
-                       uploading && "opacity-50 cursor-wait"
-                     )}>
-                       <input 
-                         type="file" 
-                         className="hidden" 
-                         multiple 
-                         accept="image/*,video/*" 
-                         onChange={handleFileUpload}
-                         disabled={uploading}
-                       />
-                       <div className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                          {uploading ? (
-                            <div className="w-6 h-6 border-2 border-[#B8924A] border-t-transparent rounded-full animate-spin" />
+                      {images.map((img, i) => (
+                        <div key={i} className="aspect-square relative rounded-[1.5rem] overflow-hidden group shadow-lg border border-border">
+                          {img.type === 'image' ? (
+                            <img src={img.url} className="w-full h-full object-cover" alt="Preview" />
                           ) : (
-                            <PlusCircle size={28} className="text-[#B8924A]" />
+                            <video src={img.url} className="w-full h-full object-cover" />
                           )}
-                       </div>
-                       <span className="text-[10px] font-black uppercase tracking-widest">
-                         {uploading ? 'Enviando...' : 'Adicionar'}
-                       </span>
-                     </label>
-                   </div>
+                          <button 
+                            onClick={() => removeMedia(i)}
+                            className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-xl shadow-lg transition-all z-20"
+                          >
+                            <X size={14} strokeWidth={3} />
+                          </button>
+                          {img.type === 'video' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                <Zap size={20} className="text-white fill-white" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      
+                      <div 
+                        onClick={openCamera}
+                        className="aspect-square bg-[#B8924A]/10 border-2 border-dashed border-[#B8924A]/30 rounded-[1.5rem] flex flex-col items-center justify-center gap-3 text-[#B8924A] hover:bg-[#B8924A]/20 transition-all group cursor-pointer"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <Camera size={28} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Câmera / Vídeo</span>
+                      </div>
+
+                      <label className={cn(
+                        "aspect-square bg-muted border-2 border-dashed border-border rounded-[1.5rem] flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all group cursor-pointer",
+                        uploading && "opacity-50 cursor-wait"
+                      )}>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          multiple 
+                          accept="image/*,video/*" 
+                          onChange={handleFileUpload}
+                          disabled={uploading}
+                        />
+                        <div className="w-12 h-12 rounded-2xl bg-background flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                           {uploading ? (
+                             <div className="w-6 h-6 border-2 border-[#B8924A] border-t-transparent rounded-full animate-spin" />
+                           ) : (
+                             <PlusCircle size={28} className="text-muted-foreground/40" />
+                           )}
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">
+                          Anexar Arquivo
+                        </span>
+                      </label>
+                    </div>
                 </div>
               </div>
 
@@ -763,6 +922,95 @@ export default function NewRequestPage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Camera / Video Recording Modal */}
+      <AnimatePresence>
+        {isCameraOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-4 md:p-10"
+          >
+            <div className="absolute top-6 right-6 z-[210]">
+              <button onClick={closeCamera} className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="relative w-full max-w-2xl aspect-[9/16] md:aspect-video bg-neutral-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/5">
+              {!capturedImage && !capturedVideoUrl ? (
+                <>
+                  <video 
+                    ref={cameraVideoRef} 
+                    autoPlay 
+                    playsInline 
+                    muted 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {isRecordingCamera && (
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-600 rounded-full flex items-center gap-2 animate-pulse">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                      <span className="text-white font-black text-xs uppercase tracking-widest">{recordingTime}s</span>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-8 inset-x-0 flex items-center justify-around">
+                    <button onClick={takePhoto} className="p-5 bg-white rounded-full text-black hover:scale-110 transition-transform shadow-xl">
+                      <Camera size={32} />
+                    </button>
+                    
+                    <button 
+                      onClick={isRecordingCamera ? stopRecording : startRecording}
+                      className={cn(
+                        "w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all shadow-xl",
+                        isRecordingCamera ? "border-red-500 bg-red-500/20" : "border-white bg-white/10 hover:bg-white/20"
+                      )}
+                    >
+                      {isRecordingCamera ? (
+                        <div className="w-8 h-8 bg-red-500 rounded-sm" />
+                      ) : (
+                        <div className="w-8 h-8 bg-red-500 rounded-full" />
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full h-full relative">
+                  {capturedImage ? (
+                    <img src={capturedImage} className="w-full h-full object-cover" alt="Captured" />
+                  ) : (
+                    <video src={capturedVideoUrl!} controls autoPlay className="w-full h-full object-cover" />
+                  )}
+                  
+                  <div className="absolute bottom-8 inset-x-0 flex items-center justify-center gap-6">
+                    <button 
+                      onClick={() => { setCapturedImage(null); setCapturedVideoBlob(null); setCapturedVideoUrl(null); }}
+                      className="px-8 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-white font-black uppercase text-xs tracking-widest backdrop-blur-md transition-all flex items-center gap-2"
+                    >
+                      <RotateCcw size={18} /> Repetir
+                    </button>
+                    <Button 
+                      onClick={confirmCapturedMedia} 
+                      isLoading={uploading}
+                      className="px-10 py-4 bg-[#B8924A] hover:bg-[#A68342] text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-[#B8924A]/30 flex items-center gap-2"
+                    >
+                      <CheckCircle2 size={18} /> Confirmar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-8 text-center hidden md:block">
+              <p className="text-white/40 text-xs font-black uppercase tracking-widest">
+                {isRecordingCamera ? 'Gravando vídeo...' : 'Tire uma foto ou grave um vídeo rápido'}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

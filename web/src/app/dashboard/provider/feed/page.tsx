@@ -184,7 +184,7 @@ export default function RequestFeedPage() {
       </header>
 
       {/* Control Bar */}
-      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-40px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-4 px-4 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow">
+      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-40px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow overflow-x-hidden">
         <div className="flex-1">
           <Input 
             placeholder="Pesquisar por serviço, bairro ou cliente..." 
@@ -283,12 +283,21 @@ export default function RequestFeedPage() {
                                   </p>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                 <div className="flex flex-col gap-2">
                                   <div className="flex items-center gap-2 text-muted-foreground/60">
-                                    <DollarSign size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Orçamento</span>
+                                    <MapPin size={14} />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Localização</span>
                                   </div>
-                                  <p className="font-bold text-md text-[#B8924A] uppercase tracking-tight">Sob consulta</p>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-bold text-md text-foreground">
+                                      {opp.city?.includes('·') ? opp.city.split('·')[1].trim() : opp.city || 'Localização'}
+                                    </p>
+                                    {opp.city?.includes('·') && (
+                                      <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                                        {opp.city.split('·')[0].trim()}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
 
                                 <div className="flex flex-col gap-2">

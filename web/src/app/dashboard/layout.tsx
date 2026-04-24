@@ -147,21 +147,49 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       return date.toLocaleDateString();
     };
 
-    checkUser();
-    fetchNotifications();
+    let isMounted = true;
+    let channel: any;
 
-    // Subscribe to new notifications
-    const channel = supabase
-      .channel('realtime_notifications')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'notifications' 
-      }, () => {
-        fetchNotifications();
-      })
-      .subscribe();
-  }, [router]);
+    const init = async () => {
+      await checkUser();
+      if (!isMounted) return;
+      await fetchNotifications();
+      if (!isMounted) return;
+
+      // Subscribe to new notifications only if table exists and we are still mounted
+      if (hasNotificationsTable) {
+        // Create channel with a unique name for this effect instance to avoid "cannot add callbacks after subscribe" error
+        // which happens if an old subscription is still active during re-render
+        const channelName = `notifications-${Math.random().toString(36).slice(2, 9)}`;
+        const newChannel = supabase.channel(channelName);
+        
+        newChannel
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'notifications' 
+          }, () => {
+            if (isMounted) fetchNotifications();
+          })
+          .subscribe((status) => {
+            if (status === 'CHANNEL_ERROR') {
+              console.warn('Realtime channel error - possibly missing permissions or table');
+            }
+          });
+
+        channel = newChannel;
+      }
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [router, hasNotificationsTable]);
 
 
 
@@ -471,12 +499,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           {/* content */}
           <div
             className={cn(
-              "flex-1 no-scrollbar",
+              "flex-1 no-scrollbar overflow-x-hidden",
               isChatOpen ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
             )}
             style={!isChatOpen ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
           >
-            <div className="max-w-[1400px] mx-auto">
+            <div className={cn("mx-auto w-full", isChatOpen ? "h-full" : "max-w-[1400px]")}>
               {children}
             </div>
           </div>

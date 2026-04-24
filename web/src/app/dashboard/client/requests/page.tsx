@@ -162,7 +162,7 @@ export default function RequestsPage() {
                     <div className="flex-1 p-7 lg:p-8">
                       <div className="flex items-start justify-between mb-5">
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex flex-col items-start gap-2 mb-1">
                             <span className={cn(
                               'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider',
                               cfg.variant === 'gold'    ? 'bg-[#B8924A]/10 text-[#B8924A] border-[#B8924A]/20' :
@@ -172,7 +172,7 @@ export default function RequestsPage() {
                               <span className={cn('w-1.5 h-1.5 rounded-full', cfg.dot)} />
                               {cfg.label}
                             </span>
-                            <span className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest">{timeAgo}</span>
+                            <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.15em]">{timeAgo}</span>
                           </div>
                           <h4 className="text-xl font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors">
                             {req.title}

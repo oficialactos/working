@@ -57,33 +57,34 @@ export const LeadsFeed = () => {
             >
               <div className="flex-1 flex flex-col gap-4">
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A]">
+                  <div className="space-y-2.5">
+                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A] w-fit block">
                       {lead.category}
                     </span>
-                    <div className="flex items-center gap-1.5 text-muted-foreground/60 font-bold text-[10px] uppercase tracking-wide whitespace-nowrap shrink-0">
+                    <div className="flex items-center gap-1.5 text-muted-foreground/60 font-bold text-[9px] uppercase tracking-wide">
                       <Clock size={10} />
-                      {timeAgo}
+                      Publicado {timeAgo}
                     </div>
                   </div>
-                  <h4 className="text-xl font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors leading-tight">
+                  <h4 className="text-xl font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors leading-tight pt-1">
                     {lead.title}
                   </h4>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-muted-foreground font-bold text-xs">
-                    <MapPin size={13} />
-                    {lead.city || 'Localização não informada'}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-muted-foreground font-bold text-xs">
+                      <MapPin size={13} />
+                      {lead.city?.includes('·') ? lead.city.split('·')[1].trim() : lead.city || 'Localização'}
+                    </div>
+                    {lead.city?.includes('·') && (
+                      <div className={cn(
+                        'flex items-center gap-1.5 text-[#B8924A] font-black text-[10px] px-2.5 py-0.5 rounded-md border uppercase tracking-wider',
+                        'bg-[#B8924A]/[0.06] border-[#B8924A]/20',
+                      )}>
+                        {lead.city.split('·')[0].trim()}
+                      </div>
+                    )}
                   </div>
-                  <div className={cn(
-                    'flex items-center gap-1.5 text-[#B8924A] font-black text-xs px-3 py-1 rounded-lg border',
-                    'bg-[#B8924A]/[0.06] border-[#B8924A]/20',
-                  )}>
-                    <DollarSign size={13} />
-                    A combinar
-                  </div>
-                </div>
               </div>
 
               {/* action */}

@@ -1,5 +1,5 @@
 'use client';
-import { Users, ArrowRight, MessageSquare, Trash2, Edit3 } from 'lucide-react';
+import { Users, ArrowRight, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
@@ -50,20 +50,7 @@ export const RequestsList = () => {
     fetchRecent();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este pedido?')) return;
 
-    const { error } = await supabase
-      .from('service_requests')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      alert('Erro ao excluir pedido: ' + error.message);
-    } else {
-      setRequests(prev => prev.filter(r => r.id !== id));
-    }
-  };
 
   return (
     <div className="space-y-3">
@@ -86,30 +73,17 @@ export const RequestsList = () => {
               <div className="flex-1 p-7 lg:p-8">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-5 gap-4">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col items-start gap-2 mb-1">
                       <span className={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider', statusStyles[req.status] || statusStyles['open'])}>
                         {statusLabels[req.status] || 'Aberto'}
                       </span>
-                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{timeAgo}</span>
+                      <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.15em]">{timeAgo}</span>
                     </div>
                     <h4 className="text-xl font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors leading-tight">
                       {req.title}
                     </h4>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => router.push(`/dashboard/client/request/${req.id}`)}
-                      className="flex-1 sm:flex-none flex items-center justify-center p-2.5 bg-muted border border-border rounded-2xl text-muted-foreground hover:bg-[#B8924A]/10 hover:border-[#B8924A]/20 hover:text-[#B8924A] transition-all"
-                    >
-                      <Edit3 size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(req.id)}
-                      className="flex-1 sm:flex-none flex items-center justify-center p-2.5 bg-muted border border-border rounded-2xl text-muted-foreground hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-500 transition-all"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+
                 </div>
 
                 <div className="flex flex-wrap gap-3 text-[11px] font-black">

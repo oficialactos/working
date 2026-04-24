@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -16,6 +17,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 const categories = [
   { label: 'Elétrica',    icon: '⚡', items: 120, grad: 'from-yellow-500/10 to-amber-500/5' },
@@ -49,6 +51,37 @@ export default function Home() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Auto-redirect if logged in
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  useEffect(() => {
+    let mounted = true;
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          const role = session.user.user_metadata?.role || 'client';
+          router.replace(role === 'client' ? '/dashboard/client' : '/dashboard/provider');
+        } else if (mounted) {
+          setCheckingAuth(false);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        if (mounted) setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+    return () => { mounted = false; };
+  }, [router]);
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#B8924A] border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-[#B8924A]/30">
@@ -134,7 +167,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Qual serviço você precisa?"
-                  onKeyDown={(e) => { if (e.key === 'Enter') window.location.href = '/auth?mode=login' }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') router.push('/auth?mode=login') }}
                   className="w-full h-14 glass rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-white/25 focus:outline-none focus:border-[#B8924A]/40 focus:ring-1 focus:ring-[#B8924A]/25 transition-all text-sm font-bold"
                 />
               </div>

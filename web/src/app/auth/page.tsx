@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mail,
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 
 function AuthContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [role, setRole] = useState<'client' | 'provider'>('client');
   const [loading, setLoading] = useState(false);
@@ -68,11 +69,29 @@ function AuthContent() {
   };
 
   useEffect(() => {
+    let mounted = true;
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && mounted) {
+          const role = session.user.user_metadata?.role || 'client';
+          router.replace(role === 'client' ? '/dashboard/client' : '/dashboard/provider');
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      }
+    };
+    checkAuth();
+    
     const m = searchParams.get('mode');
     const r = searchParams.get('role');
-    if (m === 'login' || m === 'register') setMode(m);
-    if (r === 'client' || r === 'provider') setRole(r);
-  }, [searchParams]);
+    if (mounted) {
+      if (m === 'login' || m === 'register') setMode(m);
+      if (r === 'client' || r === 'provider') setRole(r);
+    }
+
+    return () => { mounted = false; };
+  }, [searchParams, router]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +158,7 @@ function AuthContent() {
         if (signInError) throw signInError;
         if (data.user) {
           const userRole = data.user.user_metadata?.role || 'client';
-          window.location.href = userRole === 'client' ? '/dashboard/client' : '/dashboard/provider';
+          router.replace(userRole === 'client' ? '/dashboard/client' : '/dashboard/provider');
         }
       }
     } catch (err: unknown) {

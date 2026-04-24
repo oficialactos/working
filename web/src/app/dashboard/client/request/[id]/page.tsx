@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Notification } from '@/components/ui/Notification';
 import { cn, formatName } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
@@ -39,6 +40,22 @@ export default function ClientRequestDetailsPage() {
   const [editDescription, setEditDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
+
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => {
+    setNotification({ show: true, type, title, message });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,7 +155,7 @@ export default function ClientRequestDetailsPage() {
       }
     } catch (err: any) {
       console.error('Error starting chat:', err);
-      alert('Não foi possível iniciar a conversa. Tente novamente.');
+      showNotification('error', 'Erro', 'Não foi possível iniciar a conversa. Tente novamente.');
     } finally {
       setLoadingChatId(null);
     }
@@ -155,12 +172,103 @@ export default function ClientRequestDetailsPage() {
       .eq('id', request.id);
 
     if (error) {
-      alert('Erro ao salvar: ' + error.message);
+      showNotification('error', 'Erro ao salvar', error.message);
     } else {
       setRequest({ ...request, title: editTitle, description: editDescription });
       setIsEditing(false);
+      showNotification('success', 'Sucesso!', 'Pedido atualizado com sucesso.');
     }
     setSaving(false);
+  };
+
+  const handleAcceptProposal = async (proposal: any) => {
+    setAcceptingId(proposal.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/auth');
+        return;
+      }
+
+      const providerId = proposal.provider_id || proposal.prestador_id || proposal.user_id || proposal.id_prestador;
+
+      // 1. Update proposal status
+      await supabase
+        .from('proposals')
+        .update({ status: 'accepted' })
+        .eq('id', proposal.id);
+
+      // 2. Update request status to in_progress
+      await supabase
+        .from('service_requests')
+        .update({ status: 'in_progress' })
+        .eq('id', request.id);
+
+      // 3. Reject other proposals (optional, but good for UX)
+      await supabase
+        .from('proposals')
+        .update({ status: 'rejected' })
+        .eq('request_id', request.id)
+        .neq('id', proposal.id);
+
+      // 4. Create/Get chat
+      let chatId: string;
+      const { data: existingChat } = await supabase
+        .from('chats')
+        .select('id')
+        .eq('request_id', request.id)
+        .eq('provider_id', providerId)
+        .maybeSingle();
+
+      if (existingChat) {
+        chatId = existingChat.id;
+      } else {
+        const { data: newChat, error: chatError } = await supabase
+          .from('chats')
+          .insert({
+            request_id: request.id,
+            client_id: session.user.id,
+            provider_id: providerId
+          })
+          .select()
+          .single();
+        
+        if (chatError) throw chatError;
+        chatId = newChat.id;
+      }
+
+      // 5. Send automatic message
+      await supabase
+        .from('messages')
+        .insert({
+          chat_id: chatId,
+          sender_id: session.user.id,
+          content: `Olá! Aceitei sua proposta para "${request.title}". Vamos conversar sobre os detalhes?`
+        });
+
+      // 6. Notify provider
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: providerId,
+          title: 'Proposta Aceita! 🎉',
+          body: `O cliente aceitou sua proposta para "${request.title}".`,
+          type: 'proposal_accepted',
+          link: `/dashboard/chat?id=${chatId}`
+        });
+
+      showNotification('success', 'Proposta Aceita!', 'Você será redirecionado para a conversa em instantes.');
+      
+      setTimeout(() => {
+        router.push(`/dashboard/chat?id=${chatId}`);
+      }, 2000);
+
+    } catch (err: any) {
+      console.error('Error accepting proposal:', err);
+      showNotification('error', 'Erro', 'Não foi possível aceitar a proposta. Tente novamente.');
+    } finally {
+      setAcceptingId(null);
+    }
   };
 
   const statusLabels: Record<string, string> = {
@@ -198,33 +306,22 @@ export default function ClientRequestDetailsPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 mb-2">
-              <Badge variant="primary" className="bg-blue-500/10 text-blue-500 border-none outline-none">{statusLabels[request.status] || request.status}</Badge>
-              <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground/60 uppercase tracking-widest">
-                <Clock size={14} />
-                <span>{timeAgo}</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex flex-col items-start gap-2 mb-3">
+                <Badge variant="primary" className="bg-blue-500/10 text-blue-500 border-none outline-none w-fit">{statusLabels[request.status] || request.status}</Badge>
+                <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground/40 uppercase tracking-widest">
+                  <Clock size={12} />
+                  <span>{timeAgo}</span>
+                </div>
+              </div>
+              <h1 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none text-foreground">{request.title}</h1>
+              <div className="flex items-center gap-2 text-muted-foreground font-bold">
+                <MapPin size={18} />
+                <span>{request.address_text || 'Localização não informada'}</span>
               </div>
             </div>
-            <h1 className="text-4xl lg:text-6xl font-black tracking-tighter leading-none text-foreground">{request.title}</h1>
-            <div className="flex items-center gap-2 text-muted-foreground font-bold">
-              <MapPin size={18} />
-              <span>{request.address_text || 'Localização não informada'}</span>
-            </div>
           </div>
-          
-          <div className="flex items-center gap-2 bg-muted px-6 py-3 rounded-2xl border border-border">
-             <div className="flex -space-x-2">
-               {proposals.slice(0, 3).map((_, i) => (
-                 <div key={i} className="w-8 h-8 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[8px] font-black">
-                   {i + 1}
-                 </div>
-               ))}
-             </div>
-             <span className="text-sm font-black italic text-foreground">{proposals.length} {proposals.length === 1 ? 'proposta recebida' : 'propostas recebidas'}</span>
-          </div>
-        </div>
       </header>
 
       {/* Edit Modal */}
@@ -363,11 +460,23 @@ export default function ClientRequestDetailsPage() {
                               </div>
                               
                               <div className="flex flex-col sm:items-end shrink-0 pl-[60px] sm:pl-0">
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-xs font-black text-[#B8924A] italic">R$</span>
-                                  <span className="text-3xl font-black tracking-tight text-foreground">{(prop.price || 0).toFixed(2).replace('.', ',')}</span>
-                                </div>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Valor total da proposta</p>
+                                {prop.price > 0 ? (
+                                  <>
+                                    <div className="flex items-baseline gap-1">
+                                      <span className="text-xs font-black text-[#B8924A] italic">R$</span>
+                                      <span className="text-3xl font-black tracking-tight text-foreground">{(prop.price || 0).toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-1">Valor total da proposta</p>
+                                  </>
+                                ) : (
+                                  <div className="text-right">
+                                    <div className="flex items-center gap-2 bg-[#B8924A]/10 px-4 py-2 rounded-xl border border-[#B8924A]/20 shadow-sm">
+                                      <MapPin size={16} className="text-[#B8924A]" />
+                                      <span className="text-sm font-black text-[#B8924A] uppercase tracking-tight">Solicita Visita</span>
+                                    </div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 mt-2">Preço a combinar</p>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -388,8 +497,13 @@ export default function ClientRequestDetailsPage() {
                                 >
                                  <MessageSquare size={16} className="mr-2" /> Chat
                                </Button>
-                               <Button variant="primary" className="flex-[2] h-12 rounded-xl text-xs font-black bg-foreground text-background active:scale-95 transition-all">
-                                 Aceitar Proposta 
+                               <Button 
+                                  variant="primary" 
+                                  className="flex-[2] h-12 rounded-xl text-xs font-black bg-foreground text-background active:scale-95 transition-all"
+                                  onClick={() => handleAcceptProposal(prop)}
+                                  disabled={acceptingId === prop.id}
+                                >
+                                 {acceptingId === prop.id ? 'Processando...' : 'Aceitar Proposta'}
                                </Button>
                             </div>
                           </div>
@@ -447,6 +561,14 @@ export default function ClientRequestDetailsPage() {
           </Card>
         </aside>
       </div>
+
+      <Notification 
+        show={notification.show}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        onClose={() => setNotification({ ...notification, show: false })}
+      />
     </div>
   );
 }

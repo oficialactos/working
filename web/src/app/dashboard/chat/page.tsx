@@ -30,8 +30,10 @@ import {
   RotateCcw,
   Check,
   ArrowLeft,
-  User
+  User,
+  ChevronRight
 } from 'lucide-react';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { supabase } from '@/lib/supabase';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -189,7 +191,7 @@ function ChatContent() {
       .from('chats')
       .select(`
         *,
-        request:service_requests(title, category),
+        request:service_requests(id, title, category),
         client:profiles!client_id(id, full_name, avatar_url, rating_avg, rating_count),
         provider:profiles!provider_id(id, full_name, avatar_url, rating_avg, rating_count)
       `)
@@ -246,7 +248,11 @@ function ChatContent() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.warn('Chat realtime channel error');
+        }
+      });
 
     // Polling fallback — busca apenas mensagens mais novas que a última conhecida
     const poll = async () => {
@@ -684,9 +690,16 @@ function ChatContent() {
                      <div className={`status-dot online`} />
                    </div>
 
-                  <div className="chat-row-content">
+                   <div className="chat-row-content">
                     <div className="row-top">
-                      <span className="user-name">{other?.full_name}</span>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="user-name truncate">{other?.full_name}</span>
+                        {chat.request?.title && (
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#B8924A] opacity-70 mt-0.5 line-clamp-1">
+                            {chat.request.title}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </button>
@@ -799,6 +812,39 @@ function ChatContent() {
             </header>
 
             <div className="messages-container">
+              {/* Service Context Card */}
+              {activeChat.request && (
+                <div className="px-4 py-6 mb-4">
+                  <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-3xl p-6 relative overflow-hidden group/service shadow-2xl">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/service:opacity-20 transition-opacity">
+                      <Zap size={48} className="text-[#B8924A]" />
+                    </div>
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-[#B8924A]/10 border-[#B8924A]/20 text-[#B8924A] text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1">
+                          {activeChat.request.category}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight text-white group-hover/service:text-[#B8924A] transition-colors">{activeChat.request.title}</h2>
+                        <p className="text-xs font-bold text-white/40 mt-1 uppercase tracking-widest">Contexto do Serviço Selecionado</p>
+                      </div>
+                      <Link 
+                        href={`/dashboard/provider/lead/${activeChat.request.id}`}
+                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#B8924A] hover:text-[#d4af71] transition-all pt-2 relative z-20 cursor-pointer active:scale-95"
+                      >
+                        Ver Detalhes do Projeto <ChevronRight size={14} className="mt-[-1px]" />
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-8">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20">Início da Conversa</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                  </div>
+                </div>
+              )}
+
               {loadingMessages ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#B8924A] border-t-transparent" />
@@ -1258,6 +1304,8 @@ function ChatContent() {
         .chat-layout-premium {
           display: flex;
           height: 100%;
+          width: 100%;
+          min-height: 0;
           background: hsl(var(--card));
           border-radius: 32px;
           overflow: hidden;
@@ -1280,10 +1328,12 @@ function ChatContent() {
           flex-direction: column;
           background: hsl(var(--card));
           min-height: 0;
+          height: 100%;
+          overflow: hidden;
         }
 
         .sidebar-header {
-          padding: 2rem 1.5rem 1.5rem;
+          padding: 2rem 1rem 1.5rem;
           display: flex;
           flex-direction: column;
           gap: 1.2rem;
@@ -1322,7 +1372,7 @@ function ChatContent() {
         .chats-scroller {
           flex: 1;
           overflow-y: auto;
-          padding: 0 1rem 1rem;
+          padding: 0 0.5rem 1rem;
           min-height: 0;
           overscroll-behavior-y: contain;
         }
@@ -1332,7 +1382,7 @@ function ChatContent() {
           display: flex;
           align-items: center;
           gap: 1rem;
-          padding: 1rem;
+          padding: 1rem 0.75rem;
           border-radius: 20px;
           margin-bottom: 0.4rem;
           transition: all 0.2s;
@@ -1430,7 +1480,7 @@ function ChatContent() {
           background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
           background-size: 40px 40px;
           min-height: 0;
-          overscroll-behavior-y: contain;
+          height: 100%;
         }
 
         .date-divider { display: flex; justify-content: center; margin: 1rem 0; }
@@ -1790,7 +1840,7 @@ function ChatContent() {
           }
 
           .sidebar-header {
-            padding: 1.5rem 1rem 1rem;
+            padding: 1.5rem 0.5rem 1rem;
           }
 
           .sidebar-header, .chat-row-content, .row-top, .row-bottom {
@@ -1798,7 +1848,7 @@ function ChatContent() {
           }
 
           .chat-row-premium {
-            padding: 0.8rem 1rem;
+            padding: 0.8rem 0.5rem;
             gap: 0.8rem;
           }
 

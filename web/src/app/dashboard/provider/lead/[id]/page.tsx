@@ -34,6 +34,7 @@ export default function LeadDetailsPage() {
   const [proposalPrice, setProposalPrice] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestVisit, setRequestVisit] = useState(false);
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +78,15 @@ export default function LeadDetailsPage() {
 
     fetchLead();
   }, [params.id]);
+
+  useEffect(() => {
+    if (lead && requestVisit) {
+      const clientName = formatName(lead.client?.full_name).split(' ')[0];
+      setDescription(`Olá ${clientName}! Gostaria de agendar uma visita técnica para avaliar o local e passar um orçamento preciso. Quais dias e horários funcionam para você?`);
+    } else if (lead && !requestVisit && description.includes('Gostaria de agendar uma visita técnica')) {
+      setDescription('');
+    }
+  }, [requestVisit, lead]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,10 +143,10 @@ export default function LeadDetailsPage() {
 
       // Clean price input (replace comma with dot)
       const cleanPrice = proposalPrice.replace(',', '.');
-      const numericPrice = parseFloat(cleanPrice);
+      const numericPrice = requestVisit ? 0 : parseFloat(cleanPrice);
 
-      if (isNaN(numericPrice) || numericPrice <= 0) {
-        showNotification('warning', 'Valor Inválido', 'Por favor, insira um valor válido para o orçamento.');
+      if (!requestVisit && (isNaN(numericPrice) || numericPrice <= 0)) {
+        showNotification('warning', 'Valor Inválido', 'Por favor, insira um valor válido para o orçamento ou solicite uma visita técnica.');
         setIsSubmitting(false);
         return;
       }
@@ -161,7 +171,50 @@ export default function LeadDetailsPage() {
         }
         setIsSubmitting(false);
       } else {
-        showNotification('success', 'Sucesso!', 'Sua proposta foi enviada com sucesso para o cliente.');
+        // --- NEW: Automatically create chat and send the message ---
+        try {
+          // 1. Create/Get chat
+          let chatId: string;
+          const { data: existingChat } = await supabase
+            .from('chats')
+            .select('id')
+            .eq('request_id', params.id)
+            .eq('provider_id', session.user.id)
+            .maybeSingle();
+
+          if (existingChat) {
+            chatId = existingChat.id;
+          } else {
+            const { data: newChat, error: chatError } = await supabase
+              .from('chats')
+              .insert({
+                request_id: params.id,
+                client_id: lead.client_id,
+                provider_id: session.user.id
+              })
+              .select()
+              .single();
+            
+            if (chatError) throw chatError;
+            chatId = newChat.id;
+          }
+
+          // 2. Send the message (the description provided in the proposal)
+          if (description.trim()) {
+            await supabase
+              .from('messages')
+              .insert({
+                chat_id: chatId,
+                sender_id: session.user.id,
+                content: description.trim()
+              });
+          }
+        } catch (chatErr) {
+          console.error('Error auto-creating chat/message:', chatErr);
+        }
+        // ---------------------------------------------------------
+
+        showNotification('success', 'Sucesso!', 'Sua proposta foi enviada e uma conversa foi iniciada com o cliente.');
         setTimeout(() => {
           router.push('/dashboard/provider');
         }, 2000);
@@ -324,28 +377,68 @@ export default function LeadDetailsPage() {
               </header>
 
               <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="space-y-2">
-                  <Input 
-                    label="Valor Total do Orçamento (R$)" 
-                    type="number" 
-                    placeholder="Ex: 250" 
-                    icon={<DollarSign size={20} />}
-                    className="h-16 rounded-2xl bg-muted/50 border-border font-black text-xl text-foreground"
-                    value={proposalPrice}
-                    onChange={(e) => setProposalPrice(e.target.value)}
-                    required
-                  />
-                  <p className="text-[10px] font-black text-muted-foreground uppercase text-center px-4 leading-relaxed">
-                    Você pode renegociar o valor final após o chat ou visita técnica.
-                  </p>
+                <div className="space-y-4">
+                  <div 
+                    onClick={() => setRequestVisit(!requestVisit)}
+                    className={cn(
+                      "flex items-center justify-between p-5 rounded-2xl border-2 transition-all cursor-pointer group",
+                      requestVisit ? "bg-[#B8924A]/10 border-[#B8924A] shadow-lg shadow-[#B8924A]/10" : "bg-muted/30 border-border hover:border-[#B8924A]/30"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                        requestVisit ? "bg-[#B8924A] text-white" : "bg-muted text-muted-foreground group-hover:text-[#B8924A]"
+                      )}>
+                        <MapPin size={20} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-wider text-foreground">Solicitar Visita Técnica</p>
+                        <p className="text-[10px] font-bold text-muted-foreground italic">Não consigo dar preço sem ver</p>
+                      </div>
+                    </div>
+                    <div className={cn(
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                      requestVisit ? "border-[#B8924A] bg-[#B8924A]" : "border-muted-foreground/30"
+                    )}>
+                      {requestVisit && <CheckCircle2 size={14} className="text-white" />}
+                    </div>
+                  </div>
+
+                  {!requestVisit && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-2"
+                    >
+                      <Input 
+                        label="Valor Total do Orçamento (R$)" 
+                        type="number" 
+                        placeholder="Ex: 250" 
+                        icon={<DollarSign size={20} />}
+                        className="h-16 rounded-2xl bg-muted/50 border-border font-black text-xl text-foreground"
+                        value={proposalPrice}
+                        onChange={(e) => setProposalPrice(e.target.value)}
+                        required={!requestVisit}
+                      />
+                      <p className="text-[10px] font-black text-muted-foreground uppercase text-center px-4 leading-relaxed">
+                        Você pode renegociar o valor final após o chat ou visita técnica.
+                      </p>
+                    </motion.div>
+                  )}
                 </div>
 
 
                 <div className="space-y-3 font-bold">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-4">Descrição da Proposta</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground pl-4">
+                    {requestVisit ? 'Mensagem para Agendamento' : 'Descrição da Proposta'}
+                  </label>
                   <textarea 
                     className="w-full bg-muted/50 border border-border rounded-[2rem] p-6 text-sm font-bold italic min-h-[160px] focus:ring-2 focus:ring-[#B8924A] outline-none transition-all placeholder:text-muted-foreground/40 text-foreground"
-                    placeholder={`Olá ${formatName(lead.client?.full_name).split(' ')[0]}! Detalhe aqui seu prazo de execução, se o valor inclui material e outras informações importantes...`}
+                    placeholder={requestVisit 
+                      ? `Olá ${formatName(lead.client?.full_name).split(' ')[0]}! Gostaria de agendar uma visita técnica para avaliar o local e passar um orçamento preciso. Quais dias e horários funcionam para você?`
+                      : `Olá ${formatName(lead.client?.full_name).split(' ')[0]}! Detalhe aqui seu prazo de execução, se o valor inclui material e outras informações importantes...`
+                    }
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     required
