@@ -153,6 +153,7 @@ function ChatContent() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const cameraMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const cameraChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
@@ -239,7 +240,7 @@ function ChatContent() {
           } else if (payload.eventType === 'UPDATE') {
             setMessages((prev) => prev.map(m => m.id === payload.new.id ? payload.new : m));
           } else if (payload.eventType === 'DELETE') {
-            setMessages((prev) => prev.filter(m => m.id === payload.old.id));
+            setMessages((prev) => prev.filter(m => m.id !== payload.old.id));
           }
         }
       )
@@ -250,22 +251,39 @@ function ChatContent() {
     };
   }, [selectedChatId]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!messageText.trim() || !selectedChatId || !user) return;
 
-    const newMessage = {
+    const content = messageText.trim();
+    setMessageText('');
+
+    const tempId = `temp-${Date.now()}`;
+    const optimistic = {
+      id: tempId,
       chat_id: selectedChatId,
       sender_id: user.id,
-      content: messageText.trim()
+      content,
+      created_at: new Date().toISOString(),
+      is_read: false,
     };
+    setMessages(prev => [...prev, optimistic]);
 
-    const { error } = await supabase.from('messages').insert(newMessage);
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({ chat_id: selectedChatId, sender_id: user.id, content })
+      .select()
+      .single();
 
     if (error) {
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       triggerToast('Erro ao enviar mensagem');
-    } else {
-      setMessageText('');
+    } else if (data) {
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m));
     }
   };
 
@@ -846,6 +864,7 @@ function ChatContent() {
                   <p className="text-sm font-black uppercase tracking-widest">Inicie a conversa</p>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             <footer className="chat-footer-v2">
