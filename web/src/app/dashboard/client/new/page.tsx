@@ -394,28 +394,24 @@ export default function NewRequestPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat.id}
                         onClick={() => setSelectedCat(cat.id)}
                         className={cn(
-                          "flex flex-col gap-6 p-10 rounded-[2.5rem] border-2 transition-all text-left group relative overflow-hidden",
-                          "border-border bg-card/50 hover:border-[#B8924A]/30 hover:bg-card hover:shadow-2xl hover:shadow-[#B8924A]/5 hover:-translate-y-1"
+                          "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group relative overflow-hidden",
+                          "border-border bg-card/50 hover:border-[#B8924A]/30 hover:bg-card hover:shadow-lg hover:shadow-[#B8924A]/5"
                         )}
                       >
-                        <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-4xl grayscale group-hover:grayscale-0 transition-all group-hover:scale-110 relative z-10">
+                        <div className="w-12 h-12 shrink-0 rounded-xl bg-muted border border-border flex items-center justify-center text-2xl grayscale group-hover:grayscale-0 transition-all group-hover:scale-110 relative z-10">
                           {cat.icon}
                         </div>
-                        <div className="relative z-10 flex-1">
-                          <p className="font-black text-2xl text-foreground group-hover:text-[#B8924A] transition-colors">{cat.label}</p>
-                          <p className="text-xs font-bold text-muted-foreground mt-3 leading-relaxed opacity-60 group-hover:opacity-100 transition-opacity">{cat.desc}</p>
+                        <div className="relative z-10 flex-1 min-w-0">
+                          <p className="font-black text-base text-foreground group-hover:text-[#B8924A] transition-colors">{cat.label}</p>
+                          <p className="text-xs font-bold text-muted-foreground mt-0.5 opacity-60 group-hover:opacity-100 transition-opacity truncate">{cat.desc}</p>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#B8924A] mt-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                          Escolher <ArrowRight size={14} />
-                        </div>
-                        
-                        <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-[#B8924A]/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ArrowRight size={16} className="shrink-0 text-muted-foreground/30 group-hover:text-[#B8924A] group-hover:translate-x-1 transition-all" />
                       </button>
                     ))}
                   </div>
