@@ -286,6 +286,19 @@ function ChatContent() {
   }, [selectedChatId]);
 
   useEffect(() => {
+    const markAsRead = async () => {
+      if (!user || !selectedChatId) return;
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('link', `/dashboard/chat?id=${selectedChatId}`)
+        .eq('is_read', false);
+    };
+    markAsRead();
+  }, [selectedChatId, user]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 

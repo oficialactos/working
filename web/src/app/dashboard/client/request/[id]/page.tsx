@@ -98,6 +98,21 @@ export default function ClientRequestDetailsPage() {
     }
   }, [params.id]);
 
+  useEffect(() => {
+    const markAsRead = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !params.id) return;
+      
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', session.user.id)
+        .eq('link', `/dashboard/client/request/${params.id}`)
+        .eq('is_read', false);
+    };
+    markAsRead();
+  }, [params.id]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -244,17 +259,6 @@ export default function ClientRequestDetailsPage() {
           chat_id: chatId,
           sender_id: session.user.id,
           content: `Olá! Aceitei sua proposta para "${request.title}". Vamos conversar sobre os detalhes?`
-        });
-
-      // 6. Notify provider
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: providerId,
-          title: 'Proposta Aceita! 🎉',
-          body: `O cliente aceitou sua proposta para "${request.title}".`,
-          type: 'proposal_accepted',
-          link: `/dashboard/chat?id=${chatId}`
         });
 
       showNotification('success', 'Proposta Aceita!', 'Você será redirecionado para a conversa em instantes.');

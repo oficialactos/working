@@ -41,6 +41,12 @@ function SettingsContent() {
   const [phone, setPhone] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
   const [bio, setBio] = useState('');
+  
+  // Notification preference states
+  const [notifLeads, setNotifLeads] = useState(true);
+  const [notifMessages, setNotifMessages] = useState(true);
+  const [notifStatus, setNotifStatus] = useState(true);
+  const [notifPlatform, setNotifPlatform] = useState(true);
 
   // Notification state
   const [notif, setNotif] = useState<{
@@ -79,6 +85,10 @@ function SettingsContent() {
           setPhone(profile.phone || '');
           setCpfCnpj(profile.cpf_cnpj || '');
           setBio(profile.bio || '');
+          setNotifLeads(profile.notif_new_leads !== false);
+          setNotifMessages(profile.notif_messages !== false);
+          setNotifStatus(profile.notif_status_updates !== false);
+          setNotifPlatform(profile.notif_platform !== false);
         }
       }
       setIsLoading(false);
@@ -115,6 +125,10 @@ function SettingsContent() {
           phone: phone,
           cpf_cnpj: cpfCnpj,
           bio: bio,
+          notif_new_leads: notifLeads,
+          notif_messages: notifMessages,
+          notif_status_updates: notifStatus,
+          notif_platform: notifPlatform,
           updated_at: new Date().toISOString()
         })
         .eq('id', session.user.id);
@@ -335,10 +349,31 @@ function SettingsContent() {
                 </CardHeader>
                 <CardContent className="p-6 md:p-10 space-y-2">
                   {[
-                    { title: 'Novos Leads em sua Região',  desc: 'Alertas em tempo real quando um novo serviço for postado.', enabled: true, providerOnly: true },
-                    { title: 'Mensagens no Chat',          desc: 'Notificações de novas mensagens enviadas para você.',       enabled: true },
-                    { title: 'Conta e Segurança',          desc: 'Avisos sobre alterações de acesso e login.',               enabled: true, providerOnly: true },
-                    { title: 'Avisos da Plataforma',       desc: 'Novidades, dicas e atualizações de sistema.',              enabled: true },
+                    { 
+                      title: 'Novos Leads em sua Região',  
+                      desc: 'Alertas em tempo real quando um novo serviço for postado.', 
+                      enabled: notifLeads, 
+                      setter: setNotifLeads,
+                      providerOnly: true 
+                    },
+                    { 
+                      title: 'Mensagens no Chat',          
+                      desc: 'Notificações de novas mensagens enviadas para você.',       
+                      enabled: notifMessages,
+                      setter: setNotifMessages
+                    },
+                    { 
+                      title: 'Status dos Serviços',        
+                      desc: 'Avisos sobre propostas aceitas e atualizações de pedidos.', 
+                      enabled: notifStatus,
+                      setter: setNotifStatus
+                    },
+                    { 
+                      title: 'Avisos da Plataforma',       
+                      desc: 'Novidades, dicas e atualizações de sistema.',              
+                      enabled: notifPlatform,
+                      setter: setNotifPlatform
+                    },
                   ].filter(item => !item.providerOnly || isProvider).map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-6 rounded-[1.5rem] hover:bg-muted/50 transition-colors group">
                       <div className="space-y-1">
@@ -347,6 +382,7 @@ function SettingsContent() {
                       </div>
                       <button
                         type="button"
+                        onClick={() => item.setter(!item.enabled)}
                         className={cn(
                           "w-14 h-8 rounded-full transition-all duration-300 relative px-1 shrink-0",
                           item.enabled ? "bg-[#B8924A] shadow-[0_0_12px_rgba(184,146,74,0.3)]" : "bg-muted"
