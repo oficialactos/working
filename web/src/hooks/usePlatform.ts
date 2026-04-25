@@ -23,7 +23,7 @@ export function usePlatform(): PlatformInfo {
 
   useEffect(() => {
     const cap = (window as any).Capacitor;
-    if (!cap?.isNative) return;
+    if (!cap?.isNativePlatform?.()) return;
 
     const platform = cap.getPlatform() as Platform;
     setInfo({

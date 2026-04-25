@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 
 // Custom storage adapter for Capacitor
-const isNative = Capacitor.isNative;
+const isNative = Capacitor.isNativePlatform();
 
 const capacitorStorage = {
   getItem: async (key: string) => {

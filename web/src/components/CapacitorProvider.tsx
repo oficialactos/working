@@ -11,7 +11,7 @@ export function CapacitorProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const cap = (window as any).Capacitor;
-    if (!cap?.isNative) return;
+    if (!cap?.isNativePlatform?.()) return;
 
     let StatusBar: any;
     let App: any;
