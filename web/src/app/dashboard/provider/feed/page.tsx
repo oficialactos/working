@@ -184,7 +184,7 @@ export default function RequestFeedPage() {
       </header>
 
       {/* Control Bar */}
-      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-40px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-20px] md:top-[-32px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow">
         <div className="flex-1">
           <Input 
             placeholder="Pesquisar por serviço, bairro ou cliente..." 
