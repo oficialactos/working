@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   // The app loads the production Vercel URL — no static bundle needed.
   // Change this to your actual Vercel URL before building for the stores.
   server: {
-    url: process.env.CAPACITOR_SERVER_URL || 'https://your-app.vercel.app',
+    url: process.env.CAPACITOR_SERVER_URL || 'https://working-actos.vercel.app',
     cleartext: false,
   },
   ios: {

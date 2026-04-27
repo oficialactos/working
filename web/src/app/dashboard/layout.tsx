@@ -73,34 +73,47 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const markAllAsRead = () => setNotifications((ns) => ns.map((n) => ({ ...n, unread: false })));
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        router.push('/auth');
-        return;
-      }
+    let mounted = true;
+    let authSubscription: any = null;
+    let notificationChannel: any = null;
 
-      const user = session.user;
-      const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário';
-      const role = user.user_metadata?.role || 'client';
-      const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
-      
-      setUserData({
-        name,
-        email: user.email || '',
-        initials,
-        role: role as 'client' | 'provider'
-      });
-      setAuthLoading(false);
+    const checkUser = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (!session) {
+          if (mounted) router.replace('/auth');
+          return;
+        }
+
+        const user = session.user;
+        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário';
+        const role = user.user_metadata?.role || 'client';
+        const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+        
+        if (mounted) {
+          setUserData({
+            name,
+            email: user.email || '',
+            initials,
+            role: role as 'client' | 'provider'
+          });
+          setAuthLoading(false);
+        }
+      } catch (err) {
+        console.error('Dashboard auth error:', err);
+        if (mounted) router.replace('/auth');
+      }
     };
 
     const fetchNotifications = async () => {
       if (!hasNotificationsTable) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
+      
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
         const { data, error } = await supabase
           .from('notifications')
           .select('*')
@@ -115,7 +128,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           } else {
             throw error;
           }
-        } else if (data) {
+        } else if (data && mounted) {
           setNotifications(data.map(n => ({
             id: n.id,
             title: n.title,
@@ -129,7 +142,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {
-        setLoadingNotifications(false);
+        if (mounted) setLoadingNotifications(false);
       }
     };
 
@@ -137,57 +150,50 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       const date = new Date(dateString);
       const now = new Date();
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-      
       if (diffInMinutes < 1) return 'Agora';
       if (diffInMinutes < 60) return `${diffInMinutes}m atrás`;
-      
       const diffInHours = Math.floor(diffInMinutes / 60);
       if (diffInHours < 24) return `${diffInHours}h atrás`;
-      
       return date.toLocaleDateString();
     };
 
-    let isMounted = true;
-    let channel: any;
-
     const init = async () => {
       await checkUser();
-      if (!isMounted) return;
-      await fetchNotifications();
-      if (!isMounted) return;
+      if (!mounted) return;
+      
+      // Setup auth listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!session && mounted) {
+          router.replace('/auth');
+        }
+      });
+      authSubscription = subscription;
 
-      // Subscribe to new notifications only if table exists and we are still mounted
+      await fetchNotifications();
+      if (!mounted) return;
+
       if (hasNotificationsTable) {
-        // Create channel with a unique name for this effect instance to avoid "cannot add callbacks after subscribe" error
-        // which happens if an old subscription is still active during re-render
         const channelName = `notifications-${Math.random().toString(36).slice(2, 9)}`;
         const newChannel = supabase.channel(channelName);
-        
         newChannel
           .on('postgres_changes', { 
             event: '*', 
             schema: 'public', 
             table: 'notifications' 
           }, () => {
-            if (isMounted) fetchNotifications();
+            if (mounted) fetchNotifications();
           })
-          .subscribe((status) => {
-            if (status === 'CHANNEL_ERROR') {
-              console.warn('Realtime channel error - possibly missing permissions or table');
-            }
-          });
-
-        channel = newChannel;
+          .subscribe();
+        notificationChannel = newChannel;
       }
     };
 
     init();
 
     return () => {
-      isMounted = false;
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      mounted = false;
+      if (authSubscription) authSubscription.unsubscribe();
+      if (notificationChannel) supabase.removeChannel(notificationChannel);
     };
   }, [router, hasNotificationsTable]);
 
@@ -232,7 +238,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className={cn(
       "min-h-screen bg-background overflow-hidden flex flex-col md:flex-row",
-      isChatOpen ? "p-0 gap-0" : "p-2 pt-14 md:p-5 gap-3 md:gap-5"
+      isChatOpen ? "p-0 gap-0" : "p-2 md:p-5 gap-3 md:gap-5"
     )}>
 
       {/* ── Desktop Sidebar ──────────────────────────────────────── */}
@@ -484,12 +490,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                   >
                     <Plus size={16} /> Novo Pedido
                   </Button>
-                )}
-                {isProvider && (
-                  <div className="flex items-center gap-2 bg-[#B8924A]/[0.08] border border-[#B8924A]/20 text-[#B8924A] font-black text-[10px] uppercase tracking-[0.18em] px-4 py-2 rounded-xl">
-                    <span className="w-1.5 h-1.5 bg-[#B8924A] rounded-full animate-pulse shadow-[0_0_6px_#B8924A]" />
-                    Disponível
-                  </div>
                 )}
               </div>
             </div>

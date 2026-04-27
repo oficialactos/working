@@ -17,7 +17,8 @@ import {
   Award,
   ChevronRight,
   Zap,
-  DollarSign
+  DollarSign,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -41,6 +42,7 @@ export default function ClientRequestDetailsPage() {
   const [saving, setSaving] = useState(false);
   const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'info' | 'warning';
@@ -415,6 +417,42 @@ export default function ClientRequestDetailsPage() {
              </p>
           </section>
 
+          {/* Media Section */}
+          {request.media_urls?.length > 0 && (
+            <section className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="h-px flex-1 bg-border" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">Mídias Compartilhadas</h3>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {request.media_urls.map((url: string, i: number) => {
+                  const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+                  return (
+                    <div 
+                      key={i} 
+                      onClick={() => setSelectedMedia(url)}
+                      className="aspect-square bg-muted/20 rounded-[2rem] border-2 border-border/50 overflow-hidden group cursor-pointer hover:border-[#B8924A]/30 transition-all shadow-sm relative"
+                    >
+                      {isVideo ? (
+                        <div className="w-full h-full relative">
+                          <video src={url} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                              <Zap size={20} className="text-white fill-white" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <img src={url} alt={`Mídia ${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {/* Proposals Section */}
           <section className="space-y-8">
             <div className="flex items-center justify-between">
@@ -573,6 +611,51 @@ export default function ClientRequestDetailsPage() {
         message={notification.message}
         onClose={() => setNotification({ ...notification, show: false })}
       />
+
+      {/* Full Screen Media Viewer */}
+      <AnimatePresence>
+        {selectedMedia && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-10"
+            onClick={() => setSelectedMedia(null)}
+          >
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all z-[210]"
+              onClick={() => setSelectedMedia(null)}
+            >
+              <X size={24} />
+            </motion.button>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative max-w-5xl w-full max-h-full flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {selectedMedia.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+                <video 
+                  src={selectedMedia} 
+                  controls 
+                  autoPlay 
+                  className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl"
+                />
+              ) : (
+                <img 
+                  src={selectedMedia} 
+                  alt="Full screen view" 
+                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl shadow-white/5"
+                />
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

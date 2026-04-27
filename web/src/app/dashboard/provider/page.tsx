@@ -51,17 +51,6 @@ export default function ProviderDashboard() {
               : 'Nenhuma nova oportunidade por enquanto. Continue de olho!'}
           </p>
         </div>
-
-        <div className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-green-500/[0.07] border border-green-500/20">
-          <div className="relative w-2.5 h-2.5">
-            <span className="absolute inset-0 rounded-full bg-green-500" />
-            <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-50" />
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sua conta está</p>
-            <p className="text-sm font-black text-green-400">Ativa e Online</p>
-          </div>
-        </div>
       </header>
 
       {/* stats */}

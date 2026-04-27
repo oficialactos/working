@@ -1,5 +1,6 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { Eye, EyeOff } from "lucide-react"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -9,6 +10,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, error, icon, ...props }, ref) => {
+    const [showPassword, setShowPassword] = React.useState(false)
+    const isPassword = type === "password"
+
+    const togglePasswordVisibility = () => {
+      setShowPassword(!showPassword)
+    }
+
+    const inputType = isPassword ? (showPassword ? "text" : "password") : type
+
     return (
       <div className="w-full space-y-2">
         {label && (
@@ -21,19 +31,29 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
           <input
-            type={type}
+            type={inputType}
             className={cn(
               "flex h-12 w-full rounded-xl border border-border bg-muted/30 px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground/30",
               "file:border-0 file:bg-transparent file:text-sm file:font-medium",
               "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#B8924A]/50 focus-visible:border-[#B8924A]/50",
               "disabled:cursor-not-allowed disabled:opacity-50 transition-all",
               icon && "pl-12",
+              isPassword && "pr-12",
               error && "border-red-500/40 ring-1 ring-red-500/25",
               className,
             )}
             ref={ref}
             {...props}
           />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          )}
         </div>
         {error && (
           <p className="text-xs font-semibold text-red-400 mt-1">{error}</p>

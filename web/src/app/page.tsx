@@ -12,6 +12,13 @@ import {
   Clock,
   ArrowUpRight,
   Sparkles,
+  Zap,
+  Droplets,
+  Paintbrush,
+  Leaf,
+  Wrench,
+  Hammer,
+  Monitor,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -20,14 +27,14 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 
 const categories = [
-  { label: 'Elétrica',    icon: '⚡', items: 120, grad: 'from-yellow-500/10 to-amber-500/5' },
-  { label: 'Hidráulica',  icon: '🔧', items: 85,  grad: 'from-blue-500/10 to-cyan-500/5' },
-  { label: 'Pintura',     icon: '🎨', items: 156, grad: 'from-pink-500/10 to-rose-500/5' },
-  { label: 'Limpeza',     icon: '🧹', items: 340, grad: 'from-emerald-500/10 to-green-500/5' },
-  { label: 'Jardinagem',  icon: '🌿', items: 42,  grad: 'from-green-500/10 to-teal-500/5' },
-  { label: 'Mecânica',    icon: '⚙️', items: 67,  grad: 'from-slate-500/10 to-gray-500/5' },
-  { label: 'Montagem',    icon: '📦', items: 210, grad: 'from-orange-500/10 to-amber-500/5' },
-  { label: 'Informática', icon: '💻', items: 98,  grad: 'from-violet-500/10 to-purple-500/5' },
+  { label: 'Elétrica',    icon: Zap,        items: 120, grad: 'from-yellow-500/20 to-amber-500/0', color: '#EAB308' },
+  { label: 'Hidráulica',  icon: Droplets,   items: 85,  grad: 'from-blue-500/20 to-cyan-500/0', color: '#3B82F6' },
+  { label: 'Pintura',     icon: Paintbrush, items: 156, grad: 'from-pink-500/20 to-rose-500/0', color: '#EC4899' },
+  { label: 'Limpeza',     icon: Sparkles,   items: 340, grad: 'from-emerald-500/20 to-green-500/0', color: '#10B981' },
+  { label: 'Jardinagem',  icon: Leaf,       items: 42,  grad: 'from-green-500/20 to-teal-500/0', color: '#22C55E' },
+  { label: 'Mecânica',    icon: Wrench,     items: 67,  grad: 'from-slate-500/20 to-gray-500/0', color: '#94A3B8' },
+  { label: 'Montagem',    icon: Hammer,     items: 210, grad: 'from-orange-500/20 to-amber-500/0', color: '#F97316' },
+  { label: 'Informática', icon: Monitor,    items: 98,  grad: 'from-violet-500/20 to-purple-500/0', color: '#8B5CF6' },
 ];
 
 const values = [
@@ -288,23 +295,44 @@ export default function Home() {
                 transition={{ delay: i * 0.05 }}
               >
                 <div
-                  onClick={() => window.location.href = '/auth?mode=login'}
+                  onClick={() => router.push('/auth?mode=login')}
                   className={cn(
-                    'group cursor-pointer aspect-square flex flex-col items-center justify-center gap-4 rounded-2xl',
-                    'border border-white/[0.06] bg-white/[0.02] transition-all duration-300 p-6 relative overflow-hidden',
-                    'hover:border-[#B8924A]/25 hover:bg-white/[0.04]',
-                    'hover:shadow-[0_0_28px_rgba(184,146,74,0.07)]',
+                    'group cursor-pointer aspect-square flex flex-col items-center justify-center gap-5 rounded-3xl',
+                    'border border-white/[0.05] bg-white/[0.02] transition-all duration-500 p-6 relative overflow-hidden',
+                    'hover:border-[#B8924A]/30 hover:bg-white/[0.04] hover:-translate-y-1',
+                    'hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5),0_0_20px_rgba(184,146,74,0.1)]',
                   )}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${cat.grad} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                  <span className="text-4xl relative z-10 group-hover:scale-110 transition-transform duration-300">
-                    {cat.icon}
-                  </span>
+                  {/* subtle gradient glow on hover */}
+                  <div className={cn(
+                    'absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500',
+                    cat.grad
+                  )} />
+                  
+                  {/* icon container */}
+                  <div className="relative z-10 w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-[#B8924A]/30 transition-all duration-500">
+                    <cat.icon 
+                      size={24} 
+                      className="transition-all duration-500" 
+                      style={{ color: cat.color }} 
+                    />
+                    {/* icon glow */}
+                    <div 
+                      className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    />
+                  </div>
+
                   <div className="text-center relative z-10">
-                    <h4 className="text-sm font-black text-white">{cat.label}</h4>
-                    <p className="text-[11px] font-bold text-white/35 group-hover:text-white/55 mt-0.5">
+                    <h4 className="text-sm font-black text-white tracking-tight">{cat.label}</h4>
+                    <p className="text-[10px] font-bold text-white/20 group-hover:text-white/40 mt-1 uppercase tracking-widest">
                       {cat.items} profissionais
                     </p>
+                  </div>
+
+                  {/* corner accent */}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0">
+                    <ArrowUpRight size={14} className="text-[#B8924A]" />
                   </div>
                 </div>
               </motion.div>

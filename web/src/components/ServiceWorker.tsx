@@ -13,7 +13,9 @@ export function ServiceWorker() {
 
         next.addEventListener('statechange', () => {
           if (next.state === 'activated' && navigator.serviceWorker.controller) {
-            window.location.reload();
+            if (process.env.NODE_ENV !== 'development') {
+              window.location.reload();
+            }
           }
         });
       });

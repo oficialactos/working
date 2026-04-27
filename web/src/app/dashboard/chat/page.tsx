@@ -152,6 +152,7 @@ function ChatContent() {
   const [capturedVideoUrl, setCapturedVideoUrl] = useState<string | null>(null);
   const [isHeaderOptionsOpen, setIsHeaderOptionsOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
@@ -897,11 +898,24 @@ function ChatContent() {
                           <>
                             {msg.content.startsWith('[IMAGE]:') ? (
                               <div className="rounded-xl overflow-hidden mb-1 max-w-[300px] border border-white/10 shadow-lg">
-                                <img src={msg.content.replace('[IMAGE]:', '')} alt="Anexo" className="w-full h-auto cursor-pointer" onClick={() => window.open(msg.content.replace('[IMAGE]:', ''), '_blank')} />
+                                <img 
+                                  src={msg.content.replace('[IMAGE]:', '')} 
+                                  alt="Anexo" 
+                                  className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity" 
+                                  onClick={() => setSelectedMedia(msg.content.replace('[IMAGE]:', ''))} 
+                                />
                               </div>
                             ) : msg.content.startsWith('[VIDEO]:') ? (
-                              <div className="rounded-xl overflow-hidden mb-1 max-w-[300px] border border-white/10 shadow-lg bg-black">
-                                <video src={msg.content.replace('[VIDEO]:', '')} controls className="w-full h-auto max-h-[400px]" />
+                              <div className="rounded-xl overflow-hidden mb-1 max-w-[300px] border border-white/10 shadow-lg bg-black relative group/vid">
+                                <video src={msg.content.replace('[VIDEO]:', '')} className="w-full h-auto max-h-[400px]" />
+                                <div 
+                                  className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/40 transition-all cursor-pointer"
+                                  onClick={() => setSelectedMedia(msg.content.replace('[VIDEO]:', ''))}
+                                >
+                                  <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                    <Zap size={24} className="text-white fill-white" />
+                                  </div>
+                                </div>
                               </div>
                             ) : msg.content.startsWith('[LOCATION]:') ? (
                               <div 

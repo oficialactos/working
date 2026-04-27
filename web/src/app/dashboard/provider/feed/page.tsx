@@ -323,10 +323,7 @@ export default function RequestFeedPage() {
                             </div>
 
                             <div className="bg-muted/50 md:w-64 p-8 flex flex-col justify-center gap-4 rounded-[2rem] m-3 border border-border/50">
-                              <div className="hidden md:block text-center space-y-1 mb-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Status</p>
-                                <p className="text-sm font-black text-green-600">Disponível</p>
-                              </div>
+
                               <Button 
                                 fullWidth 
                                 variant="uber" 

@@ -16,7 +16,13 @@ import {
   Video,
   RotateCcw,
   Circle,
-  PlusCircle
+  PlusCircle,
+  Hammer,
+  Wrench,
+  Package,
+  Leaf,
+  Droplets,
+  Paintbrush,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -29,7 +35,7 @@ const CATEGORIES = [
   { 
     id: 'reforma', 
     label: 'Reforma & Construção', 
-    icon: '🏗️', 
+    icon: Hammer, 
     desc: 'Pintura, Piso, Alvenaria, Hidráulica',
     subcategories: [
       { id: 'alvenaria', label: 'Alvenaria / Pedreiro' },
@@ -42,7 +48,7 @@ const CATEGORIES = [
   { 
     id: 'manutencao', 
     label: 'Manutenção & Elétrica', 
-    icon: '⚡', 
+    icon: Zap, 
     desc: 'Elétrica, Reparos e Ar-condicionado',
     subcategories: [
       { id: 'eletricista', label: 'Eletricista / Fiação' },
@@ -54,7 +60,7 @@ const CATEGORIES = [
   { 
     id: 'domesticos', 
     label: 'Serviços Domésticos', 
-    icon: '🧹', 
+    icon: Sparkles, 
     desc: 'Faxina, Limpeza e Passadeira',
     subcategories: [
       { id: 'limpeza', label: 'Faxina Regular' },
@@ -66,7 +72,7 @@ const CATEGORIES = [
   { 
     id: 'marcenaria', 
     label: 'Móveis & Marcenaria', 
-    icon: '🪚', 
+    icon: Package, 
     desc: 'Montagem e Reparos de Móveis',
     subcategories: [
       { id: 'montagem', label: 'Montagem de Móveis' },
@@ -77,7 +83,7 @@ const CATEGORIES = [
   { 
     id: 'externos', 
     label: 'Jardim & Áreas Externas', 
-    icon: '🌿', 
+    icon: Leaf, 
     desc: 'Poda, Piscina e Paisagismo',
     subcategories: [
       { id: 'jardinagem', label: 'Jardinagem / Poda' },
@@ -553,8 +559,8 @@ export default function NewRequestPage() {
                           "border-border bg-card/50 hover:border-[#B8924A]/30 hover:bg-card hover:shadow-lg hover:shadow-[#B8924A]/5"
                         )}
                       >
-                        <div className="w-12 h-12 shrink-0 rounded-xl bg-muted border border-border flex items-center justify-center text-2xl grayscale group-hover:grayscale-0 transition-all group-hover:scale-110 relative z-10">
-                          {cat.icon}
+                        <div className="w-12 h-12 shrink-0 rounded-xl bg-[#B8924A]/5 border border-[#B8924A]/10 flex items-center justify-center text-[#B8924A] transition-all group-hover:scale-110 group-hover:bg-[#B8924A]/10 relative z-10">
+                          <cat.icon size={20} />
                         </div>
                         <div className="relative z-10 flex-1 min-w-0">
                           <p className="font-black text-base text-foreground group-hover:text-[#B8924A] transition-colors">{cat.label}</p>
@@ -576,8 +582,8 @@ export default function NewRequestPage() {
                     </button>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
-                         <div className="w-16 h-16 rounded-3xl bg-[#B8924A]/10 flex items-center justify-center text-4xl">
-                           {activeCategory?.icon}
+                         <div className="w-16 h-16 rounded-3xl bg-[#B8924A]/10 flex items-center justify-center text-[#B8924A]">
+                           {activeCategory && <activeCategory.icon size={32} />}
                          </div>
                          <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-foreground">{activeCategory?.label}</h1>
                       </div>
