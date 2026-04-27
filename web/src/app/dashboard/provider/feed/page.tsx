@@ -158,9 +158,9 @@ export default function RequestFeedPage() {
   };
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="pb-20">
       {/* Header Section */}
-      <header className="space-y-4">
+      <header className="space-y-4 mb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-1">
             <Badge variant="primary" className="mb-2">Oportunidades Disponíveis</Badge>
@@ -184,7 +184,7 @@ export default function RequestFeedPage() {
       </header>
 
       {/* Control Bar */}
-      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-20px] md:top-[-32px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow">
+      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-21px] md:top-[-33px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow mb-10">
         <div className="flex-1">
           <Input 
             placeholder="Pesquisar por serviço, bairro ou cliente..." 
