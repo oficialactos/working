@@ -231,16 +231,18 @@ export default function ClientRequestDetailsPage() {
       const providerId = proposal.provider_id || proposal.prestador_id || proposal.user_id || proposal.id_prestador;
 
       // 1. Update proposal status
-      await supabase
+      const { error: acceptErr } = await supabase
         .from('proposals')
         .update({ status: 'accepted' })
         .eq('id', proposal.id);
+      if (acceptErr) throw acceptErr;
 
       // 2. Update request status to in_progress
-      await supabase
+      const { error: requestErr } = await supabase
         .from('service_requests')
         .update({ status: 'in_progress' })
         .eq('id', request.id);
+      if (requestErr) throw requestErr;
 
       // 3. Reject other proposals (optional, but good for UX)
       await supabase

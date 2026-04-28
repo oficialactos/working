@@ -14,7 +14,12 @@ import {
   Smartphone,
   Trash2,
   Info,
-  Award
+  Award,
+  Image as ImageIcon,
+  Upload,
+  Video,
+  X,
+  Plus,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -27,6 +32,14 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { Notification, NotificationType } from '@/components/ui/Notification';
 
+type PortfolioPost = {
+  id: string;
+  title: string;
+  description: string | null;
+  media_urls: string[];
+  created_at: string;
+};
+
 function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,13 +47,21 @@ function SettingsContent() {
   const [activeTab, setActiveTab] = useState('personal');
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Profile data states
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
   const [bio, setBio] = useState('');
+
+  // Portfolio states
+  const [portfolioPosts, setPortfolioPosts] = useState<PortfolioPost[]>([]);
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [isPosting, setIsPosting] = useState(false);
   
   // Notification preference states
   const [notifLeads, setNotifLeads] = useState(true);
@@ -90,12 +111,14 @@ function SettingsContent() {
           setNotifLeads(profile.notif_new_leads !== false);
           setNotifMessages(profile.notif_messages !== false);
           setNotifStatus(profile.notif_status_updates !== false);
-          setNotifPlatform(profile.notif_platform !== false);
+          setNotifPlatform(true);
         } else {
           setFullName(meta.full_name || '');
           setPhone(meta.phone || '');
           setCpfCnpj(meta.cnpj || '');
         }
+
+        if (userRole === 'provider') fetchPortfolio(session.user.id);
       }
       setIsLoading(false);
     };
@@ -103,14 +126,68 @@ function SettingsContent() {
     checkUser();
   }, []);
 
+  const fetchPortfolio = async (userId: string) => {
+    setLoadingPortfolio(true);
+    const { data, error } = await supabase
+      .from('portfolio_posts')
+      .select('id, title, description, media_urls, created_at')
+      .eq('provider_id', userId)
+      .order('created_at', { ascending: false });
+    if (!error && data) setPortfolioPosts(data as PortfolioPost[]);
+    setLoadingPortfolio(false);
+  };
+
+  const handleAddPost = async () => {
+    if (!newTitle.trim()) return;
+    setIsPosting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const mediaUrls: string[] = [];
+      for (const file of newFiles) {
+        const ext = file.name.split('.').pop();
+        const path = `${session.user.id}/portfolio/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('media').upload(path, file);
+        if (uploadErr) throw uploadErr;
+        const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path);
+        mediaUrls.push(publicUrl);
+      }
+
+      const { error } = await supabase.from('portfolio_posts').insert({
+        provider_id: session.user.id,
+        title: newTitle.trim(),
+        description: newDesc.trim() || null,
+        media_urls: mediaUrls,
+      });
+      if (error) throw error;
+
+      setNewTitle('');
+      setNewDesc('');
+      setNewFiles([]);
+      await fetchPortfolio(session.user.id);
+      showNotification('success', 'Publicado!', 'Publicação adicionada ao portfólio.');
+    } catch (err: any) {
+      console.error('Portfolio post error:', err);
+      showNotification('error', 'Erro', 'Não foi possível publicar. Tente novamente.');
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    const { error } = await supabase.from('portfolio_posts').delete().eq('id', postId);
+    if (!error) setPortfolioPosts(posts => posts.filter(p => p.id !== postId));
+  };
+
   const { isIOS } = usePlatform();
   const isProvider = role === 'provider';
 
   useEffect(() => {
     const tab = searchParams.get('tab');
     const allowed = isIOS
-      ? ['personal', 'security', 'notifications']
-      : ['personal', 'subscription', 'security', 'notifications'];
+      ? ['personal', 'security', 'notifications', 'portfolio']
+      : ['personal', 'subscription', 'security', 'notifications', 'portfolio'];
     if (tab && allowed.includes(tab)) {
       setActiveTab(tab);
     }
@@ -134,7 +211,6 @@ function SettingsContent() {
           notif_new_leads: notifLeads,
           notif_messages: notifMessages,
           notif_status_updates: notifStatus,
-          notif_platform: notifPlatform,
           updated_at: new Date().toISOString()
         })
         .eq('id', session.user.id);
@@ -159,6 +235,7 @@ function SettingsContent() {
     { id: 'personal',      label: 'Dados Pessoais', icon: <User size={18} /> },
     { id: 'security',      label: 'Segurança',      icon: <Shield size={18} /> },
     { id: 'notifications', label: 'Notificações',   icon: <Bell size={18} /> },
+    ...(isProvider ? [{ id: 'portfolio', label: 'Portfólio', icon: <ImageIcon size={18} /> }] : []),
   ];
 
   const cardHeaderCls = "p-10 pb-6 border-b border-border bg-card/50";
@@ -404,6 +481,136 @@ function SettingsContent() {
                 </CardContent>
               </Card>
             </motion.div>
+
+          {/* PORTFOLIO - Provider only */}
+          {isProvider && (
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'portfolio' ? 1 : 0.5 }}
+              className={cn(activeTab !== 'portfolio' && "hidden")}
+            >
+              <Card className="border-border overflow-hidden rounded-[2.5rem]">
+                <CardHeader className={cardHeaderCls}>
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className={iconBoxCls}><ImageIcon size={20} /></div>
+                    <CardTitle className="text-2xl font-black tracking-tight">Portfólio</CardTitle>
+                  </div>
+                  <CardDescription className="text-sm font-bold text-muted-foreground pl-0 md:pl-14 max-w-2xl">
+                    Mostre aos clientes os serviços que você já realizou.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6 md:p-10 space-y-8">
+
+                  {/* New post form */}
+                  <div className="space-y-5 p-6 rounded-[1.5rem] border border-dashed border-[#B8924A]/30 bg-[#B8924A]/[0.03]">
+                    <h4 className={sectionLabelCls}>Nova Publicação</h4>
+                    <Input
+                      label="Título"
+                      placeholder="Ex: Reforma da sala de estar"
+                      value={newTitle}
+                      onChange={(e) => setNewTitle(e.target.value)}
+                    />
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-2">Descrição</label>
+                      <textarea
+                        className="w-full bg-muted border border-border rounded-[1.5rem] p-5 text-sm font-bold min-h-[90px] focus:ring-1 focus:ring-[#B8924A]/40 outline-none transition-all placeholder:text-muted-foreground/30 text-foreground resize-none"
+                        placeholder="Descreva o serviço realizado..."
+                        value={newDesc}
+                        onChange={(e) => setNewDesc(e.target.value)}
+                      />
+                    </div>
+
+                    {/* File upload */}
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Fotos / Vídeos</label>
+                      <label className="flex items-center gap-3 cursor-pointer p-4 rounded-xl border border-dashed border-border hover:border-[#B8924A]/40 transition-colors">
+                        <Upload size={16} className="text-muted-foreground" />
+                        <span className="text-sm font-bold text-muted-foreground">Selecionar arquivos</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,video/*"
+                          className="hidden"
+                          onChange={(e) => setNewFiles(prev => [...prev, ...Array.from(e.target.files || [])])}
+                        />
+                      </label>
+                      {newFiles.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {newFiles.map((f, i) => (
+                            <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-xl text-xs font-bold text-muted-foreground">
+                              {f.type.startsWith('video') ? <Video size={11} /> : <ImageIcon size={11} />}
+                              <span className="max-w-[110px] truncate">{f.name}</span>
+                              <button type="button" onClick={() => setNewFiles(fs => fs.filter((_, j) => j !== i))} className="hover:text-red-400 transition-colors">
+                                <X size={11} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="glow"
+                      onClick={handleAddPost}
+                      isLoading={isPosting}
+                      disabled={!newTitle.trim() || isPosting}
+                      className="w-full rounded-2xl font-black text-xs uppercase tracking-widest h-12"
+                    >
+                      <Plus size={15} className="mr-2" /> Publicar
+                    </Button>
+                  </div>
+
+                  {/* Posts list */}
+                  {loadingPortfolio ? (
+                    <div className="space-y-4">
+                      {[1, 2].map(i => (
+                        <div key={i} className="h-24 bg-muted animate-pulse rounded-2xl border border-border" />
+                      ))}
+                    </div>
+                  ) : portfolioPosts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-14 text-center text-muted-foreground">
+                      <ImageIcon size={32} className="mb-3 opacity-20" />
+                      <p className="text-sm font-bold">Nenhuma publicação ainda.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {portfolioPosts.map((post) => (
+                        <div key={post.id} className="group flex gap-4 p-5 rounded-[1.5rem] border border-border hover:border-[#B8924A]/30 transition-all">
+                          {post.media_urls.length > 0 && (
+                            <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-muted">
+                              {post.media_urls[0].match(/\.(mp4|mov|webm)$/i) ? (
+                                <video src={post.media_urls[0]} className="w-full h-full object-cover" muted />
+                              ) : (
+                                <img src={post.media_urls[0]} alt={post.title} className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-black text-foreground truncate">{post.title}</h4>
+                            {post.description && (
+                              <p className="text-sm text-muted-foreground font-bold mt-1 line-clamp-2">{post.description}</p>
+                            )}
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 mt-2">
+                              {new Date(post.created_at).toLocaleDateString('pt-BR')}
+                              {post.media_urls.length > 0 && ` · ${post.media_urls.length} arquivo${post.media_urls.length > 1 ? 's' : ''}`}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id)}
+                            className="shrink-0 self-start p-2.5 rounded-xl text-muted-foreground/30 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           </form>
 

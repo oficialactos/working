@@ -50,7 +50,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isChatOpen = pathname === '/dashboard/chat' && searchParams.get('id');
+  const isChatPage = pathname === '/dashboard/chat';
+  const chatConversationId = searchParams.get('id');
+  const isChatOpen = isChatPage; // keeps full-screen layout on entire chat page
+  const hideMobileNav = isChatPage && !!chatConversationId; // only hides nav when conversation is open
   const { theme, toggle: toggleTheme } = useTheme();
   const [userData, setUserData] = useState<{
     name: string;
@@ -245,8 +248,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     )}>
 
       {/* ── Desktop Sidebar ──────────────────────────────────────── */}
-      {!isChatOpen && (
-      <aside className="hidden md:flex w-[270px] bg-[hsl(var(--sidebar-bg))] border-r border-border text-foreground flex-col h-[calc(100vh-2.5rem)] rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.1)] sticky top-5 z-50 overflow-hidden shrink-0">
+      <aside className={cn(
+        "hidden md:flex w-[270px] bg-[hsl(var(--sidebar-bg))] border-r border-border text-foreground flex-col z-50 overflow-hidden shrink-0",
+        isChatPage
+          ? "h-screen sticky top-0 rounded-none shadow-none"
+          : "h-[calc(100vh-2.5rem)] rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.1)] sticky top-5"
+      )}>
 
         {/* top gold accent line */}
         <div className="absolute top-0 inset-x-6 h-px bg-gradient-to-r from-transparent via-[#B8924A]/40 to-transparent" />
@@ -335,7 +342,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </aside>
-      )}
 
       {/* ── Mobile Header ─────────────────────────────────────────── */}
 
@@ -508,7 +514,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       {/* ── Mobile Bottom Nav ────────────────────────────────────── */}
-      {!isChatOpen && (
+      {!hideMobileNav && (
         <nav
           className="md:hidden fixed bottom-0 inset-x-0 bg-[#0C1018] border-t border-white/[0.05] z-[60] flex items-center justify-between px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', height: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}

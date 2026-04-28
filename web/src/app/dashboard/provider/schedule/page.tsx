@@ -35,12 +35,12 @@ type Job = {
   created_at: string;
   price: number;
   deadline_days: number | null;
+  request_id: string;
   service_requests: {
     id: string;
     title: string;
     category: string;
     city: string;
-    state: string;
     address_text: string | null;
   } | null;
 };
@@ -55,19 +55,33 @@ export default function ProviderSchedulePage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setLoading(false); return; }
 
-      const { data, error } = await supabase
+      // Fetch accepted proposals
+      const { data: proposals, error: propErr } = await supabase
         .from('proposals')
-        .select(`
-          id, status, created_at, price, deadline_days,
-          service_requests!request_id ( id, title, category, city, state, address_text )
-        `)
+        .select('id, status, created_at, price, deadline_days, request_id')
         .eq('provider_id', session.user.id)
         .eq('status', 'accepted')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setJobs(data as unknown as Job[]);
-      }
+      if (propErr) { console.error('Schedule proposals error:', propErr); setLoading(false); return; }
+      if (!proposals || proposals.length === 0) { setLoading(false); return; }
+
+      // Fetch the service requests for those proposals
+      const requestIds = proposals.map((p: any) => p.request_id).filter(Boolean);
+      const { data: requests, error: reqErr } = await supabase
+        .from('service_requests')
+        .select('id, title, category, city, address_text')
+        .in('id', requestIds);
+
+      if (reqErr) console.error('Schedule requests error:', reqErr);
+
+      const requestMap = Object.fromEntries((requests ?? []).map((r: any) => [r.id, r]));
+      const merged: Job[] = proposals.map((p: any) => ({
+        ...p,
+        service_requests: requestMap[p.request_id] ?? null,
+      }));
+
+      setJobs(merged);
       setLoading(false);
     };
 
@@ -168,7 +182,7 @@ export default function ProviderSchedulePage() {
                             {req?.city && (
                               <span className="flex items-center gap-1">
                                 <MapPin size={12} />
-                                {req.address_text ?? `${req.city}, ${req.state}`}
+                                {req.address_text ?? req.city}
                               </span>
                             )}
                             {job.price > 0 && (

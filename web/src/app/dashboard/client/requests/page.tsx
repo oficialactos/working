@@ -187,9 +187,6 @@ export default function RequestsPage() {
                             {req.title}
                           </h4>
                         </div>
-                        <div className="p-2.5 bg-muted border border-border rounded-2xl text-muted-foreground/40 group-hover:bg-[#B8924A]/10 group-hover:border-[#B8924A]/20 group-hover:text-[#B8924A] transition-all">
-                          <MessageSquare size={18} />
-                        </div>
                       </div>
 
                       <div className="flex flex-wrap gap-3 text-[11px] font-black">
@@ -205,7 +202,6 @@ export default function RequestsPage() {
                     </div>
 
                     <div className="px-7 py-5 lg:p-8 border-t lg:border-t-0 lg:border-l border-border flex items-center justify-between lg:justify-center lg:min-w-[200px]">
-                      <span className="lg:hidden text-[10px] font-black text-muted-foreground/50 uppercase tracking-widest">Gestão</span>
                       <Button
                         href={`/dashboard/client/request/${req.id}`}
                         variant="glow"

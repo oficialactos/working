@@ -151,8 +151,10 @@ function ChatContent() {
   const [capturedVideoBlob, setCapturedVideoBlob] = useState<Blob | null>(null);
   const [capturedVideoUrl, setCapturedVideoUrl] = useState<string | null>(null);
   const [isHeaderOptionsOpen, setIsHeaderOptionsOpen] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileDetails, setProfileDetails] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
@@ -665,6 +667,37 @@ function ChatContent() {
   const otherPerson = activeChat ? (user?.id === activeChat.client_id ? activeChat.provider : activeChat.client) : null;
   const isProvider = user?.user_metadata?.role === 'provider';
 
+  useEffect(() => {
+    if (!showProfile || !otherPerson?.id) return;
+    setProfileDetails(null);
+    setLoadingProfile(true);
+    (async () => {
+      // Fetch base profile
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, phone, bio, city, cpf_cnpj, created_at, role')
+        .eq('id', otherPerson.id)
+        .single();
+
+      if (profileErr) {
+        console.error('Profile fetch error:', profileErr);
+        setLoadingProfile(false);
+        return;
+      }
+
+      // Fetch provider extras separately
+      const { data: providerData, error: providerErr } = await supabase
+        .from('provider_profiles')
+        .select('*')
+        .eq('id', otherPerson.id)
+        .maybeSingle();
+      if (providerErr) console.error('Provider profile fetch error:', providerErr);
+
+      setProfileDetails({ ...profile, provider_profiles: providerData ?? null });
+      setLoadingProfile(false);
+    })();
+  }, [showProfile, otherPerson?.id]);
+
   return (
     <div className="chat-layout-premium">
       {/* Sidebar de Conversas */}
@@ -733,7 +766,7 @@ function ChatContent() {
           <>
             <header className="chat-top-header">
               <div className="header-contact">
-                <button 
+                <button
                   onClick={() => {
                     setSelectedChatId(null);
                     router.push('/dashboard/chat');
@@ -742,20 +775,22 @@ function ChatContent() {
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <div className="header-avatar overflow-hidden">
-                   {otherPerson.avatar_url ? (
-                     <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
-                   ) : (
-                     otherPerson.full_name?.charAt(0)
-                   )}
-                 </div>
-                <div className="header-details">
-                  <h3>{otherPerson.full_name}</h3>
-                  <div className="status-badge-inline">
-                    <span className="dot online" />
-                    <span className="capitalize">Online</span>
+                <button className="flex items-center gap-3 hover:opacity-80 transition-opacity" onClick={() => setShowProfile(true)}>
+                  <div className="header-avatar overflow-hidden">
+                    {otherPerson.avatar_url ? (
+                      <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
+                    ) : (
+                      otherPerson.full_name?.charAt(0)
+                    )}
                   </div>
-                </div>
+                  <div className="header-details">
+                    <h3>{otherPerson.full_name}</h3>
+                    <div className="status-badge-inline">
+                      <span className="dot online" />
+                      <span className="capitalize">Online</span>
+                    </div>
+                  </div>
+                </button>
               </div>
               <div className="header-actions relative">
                 <button
@@ -790,15 +825,6 @@ function ChatContent() {
                         <button 
                           onClick={() => {
                             setIsHeaderOptionsOpen(false);
-                            setShowDetails(!showDetails);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all border-b border-white/5"
-                        >
-                          <User size={16} className="text-[#B8924A]" /> {showDetails ? 'Esconder Perfil' : 'Ver Perfil'}
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setIsHeaderOptionsOpen(false);
                             if (confirm("Tem certeza que deseja limpar esta conversa? Todas as mensagens serão apagadas para você.")) {
                               handleClearChat();
                             }
@@ -827,31 +853,60 @@ function ChatContent() {
 
             <div className="messages-container">
               {/* Service Context Card */}
-              {activeChat.request && (
-                <div className="px-4 py-6 mb-4">
-                  <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/5 rounded-3xl p-6 relative overflow-hidden group/service shadow-2xl">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/service:opacity-20 transition-opacity">
-                      <Zap size={48} className="text-[#B8924A]" />
-                    </div>
-                    <div className="relative z-10 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-[#B8924A]/10 border-[#B8924A]/20 text-[#B8924A] text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1">
-                          {activeChat.request.category}
-                        </Badge>
+              {activeChat.request && otherPerson && (
+                <div className="px-4 pt-5 pb-1 mb-2">
+                  {/* Unified context card */}
+                  <div className="flex items-center gap-0 bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+
+                    {/* LEFT — service info */}
+                    <div className="flex-1 flex items-center gap-4 px-5 py-4 border-r border-white/[0.06]">
+                      <div className="w-10 h-10 rounded-xl bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center shrink-0">
+                        <Zap size={18} className="text-[#B8924A]" />
                       </div>
-                      <div>
-                        <h2 className="text-xl font-black tracking-tight text-white group-hover/service:text-[#B8924A] transition-colors">{activeChat.request.title}</h2>
-                        <p className="text-xs font-bold text-white/40 mt-1 uppercase tracking-widest">Contexto do Serviço Selecionado</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#B8924A]/70 mb-0.5">{activeChat.request.category}</p>
+                        <h2 className="text-sm font-black text-foreground truncate">{activeChat.request.title}</h2>
                       </div>
-                      <Link 
-                        href={`/dashboard/provider/lead/${activeChat.request.id}`}
-                        className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#B8924A] hover:text-[#d4af71] transition-all pt-2 relative z-20 cursor-pointer active:scale-95"
+                      <Link
+                        href={`/dashboard/client/request/${activeChat.request.id}`}
+                        className="shrink-0 flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-[#B8924A]/60 hover:text-[#B8924A] transition-colors"
                       >
-                        Ver Detalhes do Projeto <ChevronRight size={14} className="mt-[-1px]" />
+                        Detalhes <ChevronRight size={12} />
                       </Link>
                     </div>
+
+                    {/* RIGHT — person info + actions */}
+                    <div className="flex items-center gap-4 px-5 py-4">
+                      <div className="w-9 h-9 rounded-xl bg-[#B8924A]/10 border border-[#B8924A]/20 overflow-hidden shrink-0">
+                        {otherPerson.avatar_url
+                          ? <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
+                          : <span className="w-full h-full flex items-center justify-center font-black text-sm text-[#B8924A]">{otherPerson.full_name?.charAt(0)}</span>}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-black text-foreground truncate">{otherPerson.full_name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[9px] font-black text-[#B8924A]">★ {otherPerson.rating_avg || '5.0'}</span>
+                          <span className="text-white/20 text-[9px]">•</span>
+                          <span className="text-[9px] font-black text-muted-foreground/50">{otherPerson.rating_count || '0'} trabalhos</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 shrink-0 ml-2">
+                        {isProvider ? (
+                          <>
+                            <button className="btn-primary-gold" style={{padding: '0.5rem 1rem', fontSize: '0.65rem'}} onClick={() => triggerToast("Gerar orçamento...")}>Orçamento</button>
+                            <button className="btn-outline-dark" style={{padding: '0.5rem 1rem', fontSize: '0.65rem'}} onClick={() => triggerToast("Concluído.")}>Concluído</button>
+                          </>
+                        ) : (
+                          <>
+                            <button className="btn-primary-gold" style={{padding: '0.5rem 1rem', fontSize: '0.65rem'}} onClick={() => triggerToast(`Portfólio de ${otherPerson.full_name}...`)}>Portfólio</button>
+                            <button className="btn-outline-dark" style={{padding: '0.5rem 1rem', fontSize: '0.65rem'}} onClick={() => triggerToast("Confirmando contratação...")}>Contratar</button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 mt-8">
+
+                  <div className="flex items-center gap-4 mt-5 mb-1">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20">Início da Conversa</span>
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
@@ -1064,124 +1119,6 @@ function ChatContent() {
         )}
       </main>
 
-      {/* Sidebar Detalhes (DIREITA) */}
-      {selectedChatId && activeChat && otherPerson && (
-        <aside className="chat-aside-details">
-          <div className="aside-scroll">
-            {/* Botão de Voltar para Mobile ao ver Detalhes */}
-            <div className="md:hidden mb-6">
-               <button 
-                 onClick={() => setShowDetails(false)}
-                 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#B8924A] bg-[#B8924A]/10 px-4 py-2 rounded-xl"
-               >
-                 <ArrowLeft size={16} /> Voltar para o Chat
-               </button>
-            </div>
-
-            {isProvider ? (
-              /* PROVIDER VIEW: Detalhes do Lead */
-              <div className="detail-section">
-                <div className="section-header">
-                  <div className="icon-box"><MapPin size={18} /></div>
-                  <h4>Detalhes da Solicitação</h4>
-                </div>
-
-                <div className="lead-card-premium">
-                  <div className="l-item">
-                    <span className="l-label">Serviço</span>
-                    <p className="l-value">{activeChat.request?.title}</p>
-                  </div>
-                  <div className="l-item">
-                    <span className="l-label">Categoria</span>
-                    <Badge className="bg-[#B8924A] text-white font-black uppercase text-[10px] tracking-widest border-none">
-                      {activeChat.request?.category}
-                    </Badge>
-                  </div>
-                  <div className="l-item">
-                    <span className="l-label">Localização</span>
-                    <p className="l-value font-black group-hover:text-[#B8924A] transition-colors">
-                      {activeChat.request?.city || 'Local Indisponível'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="action-stack">
-                  <button
-                    className="btn-primary-gold"
-                    onClick={() => triggerToast("Enviando solicitação de orçamento...")}
-                  >
-                    Gerar Orçamento
-                  </button>
-                  <button
-                    className="btn-outline-dark"
-                    onClick={() => triggerToast("Serviço marcado como concluído.")}
-                  >
-                    Marcar como Concluído
-                  </button>
-                </div>
-
-                <div className="warning-box">
-                  <Info size={16} />
-                  <p>Lembre-se: Combine o valor e o prazo diretamente com o cliente.</p>
-                </div>
-              </div>
-            ) : (
-              /* CLIENT VIEW: Perfil do Profissional */
-              <div className="detail-section">
-                <div className="provider-mini-card">
-                   <div className="p-avatar-large overflow-hidden border-2 border-[#B8924A]/20">
-                     {otherPerson.avatar_url ? (
-                       <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
-                     ) : (
-                       <>
-                         {otherPerson.full_name?.charAt(0)}
-                         
-                       </>
-                     )}
-                   </div>
-                  <h4 className="p-name">{otherPerson.full_name}</h4>
-                  
-
-                  <div className="p-stats-row">
-                    <div className="s-block">
-                      <span className="s-val">{otherPerson.rating_avg || '5.0'}</span>
-                      <span className="s-lbl">Rating</span>
-                    </div>
-                    <div className="s-divider" />
-                    <div className="s-block">
-                      <span className="s-val">{otherPerson.rating_count || '0'}</span>
-                      <span className="s-lbl">Trabalhos</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="action-stack">
-                  <button
-                    className="btn-primary-gold"
-                    onClick={() => triggerToast(`Abrindo portfólio de ${otherPerson.full_name}...`)}
-                  >
-                    Ver Portfólio Completo
-                  </button>
-                  <button
-                    className="btn-outline-dark"
-                    onClick={() => triggerToast("Enviando confirmação de contratação...")}
-                  >
-                    Confirmar Contratação
-                  </button>
-                </div>
-
-                <div className="safety-card">
-                  <Shield size={20} className="text-[#B8924A]" />
-                  <div className="s-info">
-                    <p className="s-title">Dica de Segurança</p>
-                    <p className="s-desc">Negocie valores e prazos via chat. Confirme o serviço apenas após o orçamento final.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </aside>
-      )}
 
       {/* Context Menu */}
       <AnimatePresence>
@@ -1309,6 +1246,195 @@ function ChatContent() {
            </motion.div>
          )}
        </AnimatePresence>
+
+      {/* Profile Full-Screen Panel */}
+      <AnimatePresence>
+        {showProfile && otherPerson && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            className="fixed inset-0 z-[300] bg-[#0D1117] overflow-y-auto"
+          >
+            {/* Hero */}
+            <div className="relative h-52 bg-gradient-to-br from-[#B8924A]/25 via-[#B8924A]/8 to-transparent overflow-hidden shrink-0">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(184,146,74,0.18),transparent_60%)]" />
+              <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(184,146,74,0.12) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+              <button
+                onClick={() => setShowProfile(false)}
+                className="absolute top-5 left-5 flex items-center gap-2 px-4 py-2.5 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl text-white/70 hover:text-white hover:bg-black/50 transition-all text-[10px] font-black uppercase tracking-widest"
+              >
+                <ArrowLeft size={14} /> Voltar
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="max-w-2xl mx-auto px-6 -mt-14 relative z-10 pb-16">
+
+              {/* Avatar + actions row */}
+              <div className="flex items-end justify-between mb-5">
+                <div className="w-24 h-24 rounded-2xl bg-[#B8924A]/15 border-2 border-[#B8924A]/40 overflow-hidden flex items-center justify-center font-black text-4xl text-[#B8924A] shadow-2xl shadow-black/60 ring-4 ring-[#0D1117]">
+                  {otherPerson.avatar_url
+                    ? <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
+                    : otherPerson.full_name?.charAt(0)
+                  }
+                </div>
+                <div className="flex gap-2 pb-1">
+                  {isProvider ? (
+                    <>
+                      <button onClick={() => { triggerToast('Gerar orçamento...'); setShowProfile(false); }}
+                        className="px-5 py-2.5 bg-white/5 border border-white/10 text-white/70 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
+                        Orçamento
+                      </button>
+                      <button onClick={() => { triggerToast('Concluído.'); setShowProfile(false); }}
+                        className="px-5 py-2.5 bg-[#B8924A] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-lg shadow-[#B8924A]/25">
+                        Concluído
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => triggerToast(`Portfólio de ${otherPerson.full_name}...`)}
+                        className="px-5 py-2.5 bg-white/5 border border-white/10 text-white/70 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
+                        Portfólio
+                      </button>
+                      <button onClick={() => { triggerToast('Confirmando contratação...'); setShowProfile(false); }}
+                        className="px-5 py-2.5 bg-[#B8924A] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-lg shadow-[#B8924A]/25">
+                        Contratar
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Name + status */}
+              <h1 className="text-2xl font-black text-white mb-1">{otherPerson.full_name}</h1>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Online agora</span>
+                </div>
+                {profileDetails?.role && (
+                  <span className="px-2.5 py-0.5 bg-[#B8924A]/15 border border-[#B8924A]/25 rounded-full text-[9px] font-black uppercase tracking-widest text-[#B8924A]">
+                    {profileDetails.role === 'provider' ? 'Prestador' : 'Cliente'}
+                  </span>
+                )}
+              </div>
+              {profileDetails?.city && (
+                <p className="text-[11px] font-semibold text-white/30 mb-6 flex items-center gap-1.5">
+                  <MapPin size={11} className="text-white/20" />
+                  {profileDetails.city}{profileDetails.state ? `, ${profileDetails.state}` : ''}
+                </p>
+              )}
+              {!profileDetails?.city && <div className="mb-6" />}
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3 mb-8">
+                {[
+                  { val: `★ ${otherPerson.rating_avg || '5.0'}`, lbl: 'Avaliação' },
+                  { val: String(otherPerson.rating_count || '0'), lbl: 'Trabalhos' },
+                  { val: profileDetails?.provider_profiles?.service_radius_km ? `${profileDetails.provider_profiles.service_radius_km} km` : '—', lbl: 'Raio de Atendimento' },
+                ].map(({ val, lbl }) => (
+                  <div key={lbl} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl py-4 flex flex-col items-center gap-1">
+                    <span className="text-xl font-black text-white">{val}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30 text-center">{lbl}</span>
+                  </div>
+                ))}
+              </div>
+
+              {loadingProfile ? (
+                <div className="flex justify-center py-10">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#B8924A] border-t-transparent" />
+                </div>
+              ) : (
+                <>
+                  {/* About */}
+                  <div className="mb-6">
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Sobre</p>
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
+                      <p className={`text-sm leading-relaxed ${profileDetails?.bio ? 'font-semibold text-white/70' : 'font-semibold text-white/25 italic'}`}>
+                        {profileDetails?.bio || 'Nenhuma descrição adicionada ainda.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact & Fiscal info */}
+                  {(() => {
+                    const rows = [
+                      { icon: <Phone size={14} />, lbl: 'Telefone', val: profileDetails?.phone || null },
+                      { icon: <MapPin size={14} />, lbl: 'Localização', val: profileDetails?.city ? `${profileDetails.city}${profileDetails.state ? `, ${profileDetails.state}` : ''}` : null },
+                      { icon: <CreditCard size={14} />, lbl: 'CPF / CNPJ', val: profileDetails?.cpf_cnpj ? `${profileDetails.cpf_cnpj.slice(0, 3)}***${profileDetails.cpf_cnpj.slice(-2)}` : null },
+                      { icon: <Check size={14} />, lbl: 'Membro desde', val: profileDetails?.created_at ? new Date(profileDetails.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : null },
+                    ].filter(r => r.val !== null);
+                    if (rows.length === 0) return null;
+                    return (
+                      <div className="mb-6">
+                        <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Informações de Contato</p>
+                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-white/[0.05]">
+                          {rows.map(({ icon, lbl, val }) => (
+                            <div key={lbl} className="flex items-center gap-4 px-5 py-4">
+                              <span className="text-[#B8924A]/50 shrink-0">{icon}</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-white/30 w-28 shrink-0">{lbl}</span>
+                              <span className="text-sm font-semibold text-white/70">{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Categories (provider only) */}
+                  {profileDetails?.provider_profiles?.categories?.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Especialidades</p>
+                      <div className="flex flex-wrap gap-2">
+                        {profileDetails.provider_profiles.categories.map((cat: string) => (
+                          <span key={cat} className="px-3 py-1.5 bg-[#B8924A]/10 border border-[#B8924A]/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#B8924A]/80">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Portfolio */}
+                  <div className="mb-8">
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Portfólio</p>
+                    {profileDetails?.provider_profiles?.portfolio_urls?.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {profileDetails.provider_profiles.portfolio_urls.map((url: string, i: number) => (
+                          <div key={i} className="aspect-square rounded-2xl overflow-hidden border border-white/[0.06]">
+                            <img src={url} alt={`Portfólio ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1,2,3].map(i => (
+                          <div key={i} className="aspect-square rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center text-white/10">
+                            <ImageIcon size={20} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!profileDetails?.provider_profiles?.portfolio_urls?.length && (
+                      <p className="text-center text-[9px] font-black uppercase tracking-widest text-white/15 mt-3">Nenhum item no portfólio</p>
+                    )}
+                  </div>
+
+                  {/* Safety tip */}
+                  <div className="flex gap-3 items-start bg-[#B8924A]/5 border border-dashed border-[#B8924A]/15 rounded-2xl p-4">
+                    <Shield size={15} className="text-[#B8924A]/50 mt-0.5 shrink-0" />
+                    <p className="text-[10px] font-semibold text-white/25 leading-relaxed">
+                      Nunca realize pagamentos fora da plataforma. A Working garante proteção total para clientes e prestadores.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Toast Notification */}
       <AnimatePresence>
@@ -1640,63 +1766,7 @@ function ChatContent() {
           margin-bottom: 2rem;
         }
 
-        /* ASIDE DETAILS */
-        .chat-aside-details {
-          width: 300px;
-          background: hsl(var(--sidebar-bg));
-          border-left: 1px solid var(--glass-border);
-          display: flex;
-          flex-direction: column;
-          min-height: 0;
-        }
-
-        .aside-scroll {
-          flex: 1;
-          overflow-y: auto;
-          padding: 2rem 1.5rem;
-        }
-
-        .section-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 1.5rem;
-        }
-
-        .icon-box {
-          width: 36px;
-          height: 36px;
-          background: rgba(184,146,74,0.12);
-          border: 1px solid rgba(184,146,74,0.20);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #B8924A;
-        }
-
-        .section-header h4 {
-          font-size: 0.85rem;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: hsl(var(--foreground) / 0.7);
-        }
-
-        .lead-card-premium {
-          background: hsl(var(--muted) / 0.3);
-          border-radius: 24px;
-          padding: 1.5rem;
-          border: 1px solid var(--glass-border);
-          display: flex;
-          flex-direction: column;
-          gap: 1.2rem;
-          margin-bottom: 2rem;
-        }
-
-        .l-item { display: flex; flex-direction: column; gap: 4px; }
-        .l-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: hsl(var(--muted-foreground)); letter-spacing: 1px; }
-        .l-value { font-size: 0.9rem; font-weight: 800; color: hsl(var(--foreground) / 0.8); }
+        .action-stack-removed {}
 
         .action-stack {
           display: flex;
@@ -1831,16 +1901,6 @@ function ChatContent() {
         .no-chat-selected h3 { font-size: 1.4rem; font-weight: 900; color: hsl(var(--foreground)); margin-bottom: 0.5rem; }
         .no-chat-selected p { color: hsl(var(--muted-foreground)); font-weight: 600; max-width: 300px; font-size: 0.9rem; text-align: center; }
 
-        @media (max-width: 1024px) {
-          .chat-aside-details { 
-            display: ${showDetails ? 'flex' : 'none'}; 
-            position: fixed;
-            inset: 0;
-            z-index: 150;
-            width: 100% !important;
-            background: hsl(var(--background));
-          }
-        }
 
         @media (max-width: 768px) {
           .chat-layout-premium {
