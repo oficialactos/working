@@ -17,7 +17,11 @@ import {
   HelpCircle,
   ExternalLink,
   CheckCircle2,
-  Briefcase
+  Briefcase,
+  Trash2,
+  MoreVertical,
+  Edit2,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -29,6 +33,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Notification, NotificationType } from '@/components/ui/Notification';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -45,6 +50,10 @@ export default function ProfilePage() {
   const [editPhone, setEditPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [notif, setNotif] = useState<{ show: boolean; type: NotificationType; title: string; message: string }>({ show: false, type: 'error', title: '', message: '' });
+  const showError = (title: string, message: string) => setNotif({ show: true, type: 'error', title, message });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -120,7 +129,7 @@ export default function ProfilePage() {
       .eq('id', session.user.id);
 
     if (error) {
-      alert('Erro ao salvar perfil: ' + error.message);
+      showError('Erro ao salvar perfil', error.message);
     } else {
       setUserData(prev => ({ ...prev, name: editName }));
       setIsEditing(false);
@@ -168,7 +177,36 @@ export default function ProfilePage() {
       setUserData(prev => ({ ...prev, avatar: publicUrl }));
     } catch (error: any) {
       console.error('Erro detalhado:', error);
-      alert('Erro ao salvar foto: ' + error.message);
+      showError('Erro ao salvar foto', error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploading(true);
+    setShowDeleteConfirm(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // 1. Atualiza na tabela profiles
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', session.user.id);
+
+      if (updateError) throw updateError;
+
+      // 2. Atualiza nos metadados do Auth
+      await supabase.auth.updateUser({
+        data: { avatar_url: null }
+      });
+
+      setUserData(prev => ({ ...prev, avatar: '' }));
+    } catch (error: any) {
+      console.error('Erro ao remover foto:', error);
+      showError('Erro ao remover foto', error.message);
     } finally {
       setUploading(false);
     }
@@ -209,6 +247,56 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 pb-20">
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDeleteConfirm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-card border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8"
+            >
+              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500 mx-auto">
+                <Trash2 size={32} />
+              </div>
+              
+              <div className="space-y-2 text-center">
+                <h3 className="text-2xl font-black tracking-tight text-foreground">Remover Foto?</h3>
+                <p className="text-muted-foreground font-bold leading-relaxed">
+                  Tem certeza que deseja remover sua foto de perfil? Esta ação não pode ser desfeita.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  variant="outline" 
+                  fullWidth 
+                  onClick={() => setShowDeleteConfirm(false)} 
+                  className="rounded-2xl h-14 font-black order-2 sm:order-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  fullWidth 
+                  onClick={handleRemoveAvatar} 
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-2xl h-14 font-black shadow-sm order-1 sm:order-2"
+                >
+                  Sim, Remover
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Edit Profile Modal */}
       <AnimatePresence>
         {isEditing && (
@@ -285,10 +373,56 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <label className="absolute -bottom-2 -right-2 w-12 h-12 bg-white text-[#141B25] rounded-2xl flex items-center justify-center shadow-xl hover:bg-neutral-100 transition-colors cursor-pointer">
-              <Camera size={20} />
-              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
-            </label>
+            <div className="absolute -bottom-2 -right-2">
+              <button 
+                onClick={() => setShowPhotoOptions(!showPhotoOptions)}
+                className="w-12 h-12 bg-white text-[#141B25] rounded-2xl flex items-center justify-center shadow-xl hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                {showPhotoOptions ? <X size={20} /> : <Camera size={20} />}
+              </button>
+
+              <AnimatePresence>
+                {showPhotoOptions && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setShowPhotoOptions(false)} 
+                    />
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      className="absolute bottom-full right-0 mb-3 bg-card border border-white/10 rounded-2xl overflow-hidden shadow-2xl min-w-[160px] z-20"
+                    >
+                    <div className="flex flex-col p-2">
+                      <label className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
+                        <Camera size={18} className="text-white/60 group-hover:text-white" />
+                        <span className="text-sm font-bold">Alterar Foto</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                          handleAvatarUpload(e);
+                          setShowPhotoOptions(false);
+                        }} disabled={uploading} />
+                      </label>
+                      
+                      {userData.avatar && (
+                        <button 
+                          onClick={() => {
+                            setShowPhotoOptions(false);
+                            setShowDeleteConfirm(true);
+                          }}
+                          disabled={uploading}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors group text-red-400"
+                        >
+                          <Trash2 size={18} className="group-hover:text-red-300" />
+                          <span className="text-sm font-bold">Remover Foto</span>
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           <div className="flex-1 text-center md:text-left space-y-6">
@@ -436,6 +570,11 @@ export default function ProfilePage() {
           </button>
         </aside>
       </div>
+
+      <Notification
+        {...notif}
+        onClose={() => setNotif(p => ({ ...p, show: false }))}
+      />
     </div>
   );
 }

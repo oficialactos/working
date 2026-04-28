@@ -57,11 +57,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     email: string;
     initials: string;
     role: 'client' | 'provider';
+    avatarUrl: string | null;
   }>({
     name: 'Carregando...',
     email: '',
     initials: '...',
     role: 'client',
+    avatarUrl: null,
   });
   const [authLoading, setAuthLoading] = useState(true);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -92,12 +94,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         const role = user.user_metadata?.role || 'client';
         const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
         
+        const avatarUrl = user.user_metadata?.avatar_url || null;
+
         if (mounted) {
           setUserData({
             name,
             email: user.email || '',
             initials,
-            role: role as 'client' | 'provider'
+            role: role as 'client' | 'provider',
+            avatarUrl,
           });
           setAuthLoading(false);
         }
@@ -223,8 +228,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   ];
 
   const navItems = isProvider ? providerNav : clientNav;
-  const currentLabel = navItems.find((n) => n.href === pathname)?.label || 'Painel';
-
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -280,7 +283,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 )}
               >
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#B8924A] rounded-r-full shadow-[0_0_8px_#B8924A]" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#B8924A] rounded-r-full" />
                 )}
                 <item.icon
                   size={18}
@@ -290,9 +293,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                   )}
                 />
                 <span className="text-[0.88rem] tracking-tight">{item.label}</span>
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#B8924A] shadow-[0_0_8px_rgba(184,146,74,0.8)]" />
-                )}
               </Link>
             );
           })}
@@ -308,8 +308,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               onClick={() => router.push('/dashboard/profile')}
               className="flex items-center gap-3 flex-1 min-w-0"
             >
-              <div className="w-10 h-10 rounded-[14px] bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center font-black text-sm text-[#B8924A] group-hover:scale-105 transition-transform shrink-0">
-                {userData.initials}
+              <div className="w-10 h-10 rounded-[14px] bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center font-black text-sm text-[#B8924A] group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
+                {userData.avatarUrl ? (
+                  <img src={userData.avatarUrl} alt={userData.name} className="w-full h-full object-cover" />
+                ) : (
+                  userData.initials
+                )}
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className="text-[0.8rem] font-black truncate text-foreground/80">{userData.name}</p>
@@ -354,14 +358,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           {/* top bar */}
           {!isChatOpen && (
             <header className="flex items-center justify-between px-4 md:px-8 py-5 border-b border-white/[0.05] bg-white/[0.01] backdrop-blur-sm sticky top-0 z-40 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.07]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B8924A] shadow-[0_0_6px_#B8924A]" />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
-                  {currentLabel}
-                </h2>
-              </div>
-            </div>
+            <div className="flex items-center gap-3"></div>
 
             <div className="flex items-center gap-1.5 md:gap-3 relative">
               {/* theme toggle */}

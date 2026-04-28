@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, ArrowRight, MessageSquare, PlusCircle,
-  Clock, CheckCircle2, Zap, Filter, Search
+  Clock, CheckCircle2, Zap, Filter, Search, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -84,27 +84,36 @@ export default function RequestsPage() {
 
       {/* Filters + Search */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-2xl p-1.5 overflow-x-auto no-scrollbar">
-          {filters.map(f => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={cn(
-                'px-3 py-2 md:px-4 rounded-xl text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap',
-                activeFilter === f
-                  ? 'bg-[#B8924A] text-white shadow-[0_4px_12px_rgba(184,146,74,0.3)]'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
-              )}
-            >
-              {f === 'Todos' ? f : (statusConfig[f]?.label || f)}
-              <span className={cn(
-                'text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-md font-black',
-                activeFilter === f ? 'bg-white/20 text-white' : 'bg-muted/80 text-muted-foreground'
-              )}>
-                {counts[f as keyof typeof counts] || 0}
-              </span>
-            </button>
-          ))}
+        <div className="relative">
+          <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-2xl p-1.5 overflow-x-auto no-scrollbar">
+            {filters.map(f => (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className={cn(
+                  'px-3 py-2 md:px-4 rounded-xl text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap',
+                  activeFilter === f
+                    ? 'bg-[#B8924A] text-white shadow-[0_4px_12px_rgba(184,146,74,0.3)]'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                )}
+              >
+                {f === 'Todos' ? f : (statusConfig[f]?.label || f)}
+                <span className={cn(
+                  'text-[8px] md:text-[9px] px-1.5 py-0.5 rounded-md font-black',
+                  activeFilter === f ? 'bg-white/20 text-white' : 'bg-muted/80 text-muted-foreground'
+                )}>
+                  {counts[f as keyof typeof counts] || 0}
+                </span>
+              </button>
+            ))}
+          </div>
+          {/* scroll hint — mobile only */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-card via-card/80 to-transparent rounded-r-2xl flex items-center justify-end pr-2.5 sm:hidden">
+            <div className="flex items-center gap-0.5 text-muted-foreground/60">
+              <ChevronRight size={13} />
+              <ChevronRight size={13} className="-ml-2.5 opacity-50" />
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 relative min-w-[200px]">

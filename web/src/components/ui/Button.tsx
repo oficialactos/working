@@ -16,11 +16,11 @@ const buttonVariants = {
     ghost: "hover:bg-muted text-foreground",
     link:  "text-[#B8924A] underline-offset-4 hover:underline",
     gold:
-      "bg-[#B8924A] text-white hover:bg-[#c9a059] shadow-lg shadow-[#B8924A]/20 border border-[#B8924A]/30",
+      "bg-[#B8924A] text-white hover:bg-[#c9a059] border border-[#B8924A]/30",
     "gold-outline":
       "border border-[#B8924A]/30 text-[#B8924A] bg-[#B8924A]/[0.06] hover:bg-[#B8924A]/[0.12] hover:border-[#B8924A]/60",
     glow:
-      "bg-[#B8924A] text-white shadow-[0_0_20px_rgba(184,146,74,0.4)] hover:shadow-[0_0_32px_rgba(184,146,74,0.65)] hover:bg-[#c9a059] border border-[#B8924A]/40 transition-shadow",
+      "bg-[#B8924A] text-white hover:bg-[#c9a059] border border-[#B8924A]/40",
     uber:
       "bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-black border border-border/10",
   },
@@ -51,7 +51,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-bold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8924A] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98]"
     const variantClasses = buttonVariants.variant[variant]
     const sizeClasses    = buttonVariants.size[size]
-    const widthClass     = fullWidth ? "w-full" : ""
+    
+    // Novo padrão de alinhamento: full width no mobile, largura contida no desktop se desejado
+    const widthClass     = fullWidth ? "w-full md:max-w-md" : ""
 
     const combined = cn(baseClasses, variantClasses, sizeClasses, widthClass, className)
 

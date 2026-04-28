@@ -80,15 +80,21 @@ function SettingsContent() {
           .eq('id', session.user.id)
           .single();
         
+        const meta = session.user.user_metadata || {};
+
         if (profile) {
-          setFullName(profile.full_name || '');
-          setPhone(profile.phone || '');
-          setCpfCnpj(profile.cpf_cnpj || '');
+          setFullName(profile.full_name || meta.full_name || '');
+          setPhone(profile.phone || meta.phone || '');
+          setCpfCnpj(profile.cpf_cnpj || meta.cnpj || '');
           setBio(profile.bio || '');
           setNotifLeads(profile.notif_new_leads !== false);
           setNotifMessages(profile.notif_messages !== false);
           setNotifStatus(profile.notif_status_updates !== false);
           setNotifPlatform(profile.notif_platform !== false);
+        } else {
+          setFullName(meta.full_name || '');
+          setPhone(meta.phone || '');
+          setCpfCnpj(meta.cnpj || '');
         }
       }
       setIsLoading(false);

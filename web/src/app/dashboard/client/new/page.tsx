@@ -30,6 +30,7 @@ import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useRef } from 'react';
+import { Notification, NotificationType } from '@/components/ui/Notification';
 
 const CATEGORIES = [
   { 
@@ -112,7 +113,9 @@ export default function NewRequestPage() {
   const [loading, setLoading] = useState(false);
   const [providerCount, setProviderCount] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  
+  const [notif, setNotif] = useState<{ show: boolean; type: NotificationType; title: string; message: string }>({ show: false, type: 'error', title: '', message: '' });
+  const showError = (title: string, message: string) => setNotif({ show: true, type: 'error', title, message });
+
   // Camera & Video States
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isRecordingCamera, setIsRecordingCamera] = useState(false);
@@ -327,7 +330,7 @@ export default function NewRequestPage() {
       }, 100);
     } catch (err) {
       console.error('Erro ao acessar câmera:', err);
-      alert('Não foi possível acessar a câmera. Verifique as permissões.');
+      showError('Câmera indisponível', 'Não foi possível acessar a câmera. Verifique as permissões.');
     }
   };
 
@@ -353,6 +356,8 @@ export default function NewRequestPage() {
     canvas.height = cameraVideoRef.current.videoHeight;
     const ctx = canvas.getContext('2d');
     if (ctx) {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
       ctx.drawImage(cameraVideoRef.current, 0, 0);
       setCapturedImage(canvas.toDataURL('image/jpeg', 0.8));
     }
@@ -430,7 +435,7 @@ export default function NewRequestPage() {
       closeCamera();
     } catch (err) {
       console.error('Upload error:', err);
-      alert('Erro ao salvar mídia capturada.');
+      showError('Erro ao salvar mídia', 'Não foi possível salvar a mídia capturada. Tente novamente.');
     } finally {
       setUploading(false);
     }
@@ -467,7 +472,7 @@ export default function NewRequestPage() {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        alert(`Erro ao criar perfil: ${profileError.message}`);
+        showError('Erro ao criar perfil', profileError.message);
         setLoading(false);
         return;
       }
@@ -488,7 +493,7 @@ export default function NewRequestPage() {
 
     if (error) {
       console.error('Submission error:', error);
-      alert(`Erro ao publicar pedido: ${error.message}`);
+      showError('Erro ao publicar pedido', error.message);
       setLoading(false);
     } else {
       router.push('/dashboard/client');
@@ -624,13 +629,13 @@ export default function NewRequestPage() {
                     ))}
                   </div>
 
-                  <div className="pt-10 flex flex-col md:flex-row gap-4">
+                  <div className="pt-10 flex justify-center">
                     <Button 
                       size="lg" 
                       fullWidth
                       disabled={!selectedSubCat}
                       onClick={nextStep}
-                      className="h-16 md:h-20 rounded-[2rem] bg-[#B8924A] text-white hover:bg-[#A68342] font-black text-lg shadow-xl shadow-[#B8924A]/20 flex items-center justify-center gap-3 transition-all active:scale-95"
+                      className="h-16 md:h-20 rounded-xl md:rounded-2xl bg-[#B8924A] text-white hover:bg-[#A68342] font-black text-lg flex items-center justify-center gap-3 transition-all active:scale-95 md:max-w-md"
                     >
                       Confirmar e continuar
                       <ArrowRight size={22} strokeWidth={3} />
@@ -746,8 +751,13 @@ export default function NewRequestPage() {
                 </div>
               </div>
 
-              <div className="pt-10">
-                <Button size="lg" fullWidth onClick={nextStep} className="h-20 rounded-[2rem] bg-primary text-primary-foreground hover:bg-[#B8924A] font-black text-lg transition-all active:scale-95 shadow-xl shadow-black/10">
+              <div className="pt-10 flex justify-center">
+                <Button 
+                  size="lg" 
+                  fullWidth 
+                  onClick={nextStep} 
+                  className="h-20 rounded-xl md:rounded-2xl bg-primary text-primary-foreground hover:bg-[#B8924A] font-black text-lg transition-all active:scale-95 md:max-w-md"
+                >
                   Próximo: Localização
                   <ArrowRight size={22} className="ml-2" />
                 </Button>
@@ -888,7 +898,7 @@ export default function NewRequestPage() {
                               setCity(`${manualBairro}${manualBairro && manualCityState ? ' · ' : ''}${manualCityState}`);
                               setIsEditingAddress(false);
                             }}
-                            className="bg-[#B8924A] hover:bg-[#A68342] text-white rounded-2xl h-14 font-black text-xs uppercase shadow-lg shadow-[#B8924A]/20"
+                            className="bg-[#B8924A] hover:bg-[#A68342] text-white rounded-xl h-14 font-black text-xs uppercase"
                           >
                             Confirmar
                           </Button>
@@ -912,13 +922,13 @@ export default function NewRequestPage() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16" />
               </div>
 
-              <div className="pt-10">
+              <div className="pt-10 flex justify-center">
                 <Button 
                   size="lg" 
                   fullWidth 
                   onClick={handleSubmit} 
                   disabled={loading}
-                  className="h-20 rounded-[2rem] bg-[#B8924A] text-white hover:bg-[#A68342] font-black text-lg transition-all active:scale-95 shadow-xl shadow-[#B8924A]/20 flex items-center justify-center gap-3"
+                  className="h-20 rounded-xl md:rounded-2xl bg-[#B8924A] text-white hover:bg-[#A68342] font-black text-lg transition-all active:scale-95 flex items-center justify-center gap-3 md:max-w-md"
                 >
                   {loading ? 'Publicando...' : 'Publicar Pedido Agora'}
                   <Zap size={22} className="fill-white" />
@@ -947,12 +957,12 @@ export default function NewRequestPage() {
             <div className="relative w-full max-w-2xl aspect-[9/16] md:aspect-video bg-neutral-900 rounded-[2rem] overflow-hidden shadow-2xl border border-white/5">
               {!capturedImage && !capturedVideoUrl ? (
                 <>
-                  <video 
-                    ref={cameraVideoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="w-full h-full object-cover"
+                  <video
+                    ref={cameraVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover scale-x-[-1]"
                   />
                   
                   {isRecordingCamera && (
@@ -1000,7 +1010,7 @@ export default function NewRequestPage() {
                     <Button 
                       onClick={confirmCapturedMedia} 
                       isLoading={uploading}
-                      className="px-10 py-4 bg-[#B8924A] hover:bg-[#A68342] text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-[#B8924A]/30 flex items-center gap-2"
+                      className="px-10 py-4 bg-[#B8924A] hover:bg-[#A68342] text-white rounded-xl font-black uppercase text-xs tracking-widest flex items-center gap-2"
                     >
                       <CheckCircle2 size={18} /> Confirmar
                     </Button>
@@ -1017,6 +1027,11 @@ export default function NewRequestPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Notification
+        {...notif}
+        onClose={() => setNotif(p => ({ ...p, show: false }))}
+      />
     </div>
   );
 }

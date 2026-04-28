@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   ArrowLeft,
   ArrowRight,
   Clock,
@@ -18,7 +18,10 @@ import {
   ChevronRight,
   Zap,
   DollarSign,
-  X
+  X,
+  MoreVertical,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -43,6 +46,8 @@ export default function ClientRequestDetailsPage() {
   const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [notification, setNotification] = useState<{
     show: boolean;
     type: 'success' | 'error' | 'info' | 'warning';
@@ -178,6 +183,22 @@ export default function ClientRequestDetailsPage() {
     }
   };
 
+  const handleDeleteRequest = async () => {
+    setDeleting(true);
+    const { error } = await supabase
+      .from('service_requests')
+      .delete()
+      .eq('id', request.id);
+
+    if (error) {
+      showNotification('error', 'Erro ao excluir', error.message);
+      setDeleting(false);
+    } else {
+      showNotification('success', 'Pedido excluído!', 'Redirecionando...');
+      setTimeout(() => router.push('/dashboard/client/requests'), 1500);
+    }
+  };
+
   const handleSaveEdit = async () => {
     setSaving(true);
     const { error } = await supabase
@@ -298,18 +319,42 @@ export default function ClientRequestDetailsPage() {
             Voltar para pedidos
           </button>
           
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setEditTitle(request.title);
-              setEditDescription(request.description);
-              setIsEditing(true);
-            }}
-            className="rounded-xl border-border font-black text-[10px] uppercase tracking-widest px-4 h-10 hover:bg-[#B8924A] hover:text-white hover:border-[#B8924A] transition-all"
-          >
-            Editar Pedido
-          </Button>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="w-10 h-10 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-[#B8924A] transition-all"
+            >
+              <MoreVertical size={18} />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-12 z-50 bg-card border border-border rounded-2xl overflow-hidden shadow-xl min-w-[160px]">
+                  <button
+                    onClick={() => {
+                      setEditTitle(request.title);
+                      setEditDescription(request.description);
+                      setIsEditing(true);
+                      setMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-black uppercase tracking-widest text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    <Pencil size={14} /> Editar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleDeleteRequest();
+                    }}
+                    disabled={deleting}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 size={14} /> {deleting ? 'Excluindo...' : 'Excluir'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -341,11 +386,11 @@ export default function ClientRequestDetailsPage() {
               onClick={() => setIsEditing(false)}
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-card border border-white/10 w-full max-w-2xl rounded-[3rem] p-12 shadow-2xl overflow-hidden"
+              className="relative bg-card border border-white/10 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl overflow-hidden"
             >
               {/* Background Decoration */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-[#B8924A]/5 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -378,7 +423,7 @@ export default function ClientRequestDetailsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex flex-col gap-3 pt-4">
                   <Button 
                     variant="outline" 
                     fullWidth 

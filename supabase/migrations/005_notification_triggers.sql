@@ -176,22 +176,22 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_proposal_accepted();
 CREATE OR REPLACE FUNCTION public.notify_new_request()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Notificar prestadores da mesma categoria que têm notificações de leads ativas
+    -- Notificar prestadores que têm notificações de leads ativas
     INSERT INTO public.notifications (user_id, type, title, body, link)
-    SELECT 
+    SELECT
         p.id,
         'info',
         'Novo serviço disponível!',
-        'Um novo pedido de "' || NEW.category || '" foi postado' || 
+        'Um novo pedido de "' || NEW.category || '" foi postado' ||
         CASE WHEN NEW.city IS NOT NULL THEN ' em ' || NEW.city ELSE '' END || '.',
         '/dashboard/provider/feed'
     FROM public.profiles p
-    JOIN public.provider_profiles pp ON pp.id = p.id
     WHERE p.role = 'provider'
       AND p.notif_new_leads = true
-      AND NEW.category = ANY(pp.categories)
       AND p.id <> NEW.client_id;
 
+    RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
