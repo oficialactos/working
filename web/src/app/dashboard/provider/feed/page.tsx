@@ -118,7 +118,7 @@ export default function RequestFeedPage() {
             rating_count
           )
         `)
-        .eq('status', 'open')
+        .in('status', ['open', 'in_progress'])
         .order('created_at', { ascending: false });
 
       if (!error && data) {

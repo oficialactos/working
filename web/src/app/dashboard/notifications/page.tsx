@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Bell, 
+  BellRing, 
   MessageSquare, 
   CheckCircle2, 
   ArrowLeft,
@@ -196,7 +196,7 @@ export default function NotificationsPage() {
                         n.type === 'success' ? "bg-green-100 text-green-600 shadow-sm" : "bg-blue-100 text-blue-600 shadow-sm"
                       )}>
                         {n.type === 'message' ? <MessageSquare size={22} /> : 
-                         n.type === 'success' ? <CheckCircle2 size={22} /> : <Bell size={22} />}
+                         n.type === 'success' ? <CheckCircle2 size={22} /> : <BellRing size={22} />}
                       </div>
 
                       {/* Content */}
@@ -209,8 +209,8 @@ export default function NotificationsPage() {
                             )}>
                               {n.title}
                             </h4>
-                            <p className="text-sm font-bold text-muted-foreground leading-relaxed italic">
-                              "{n.description}"
+                            <p className="text-[13px] font-medium text-muted-foreground leading-relaxed break-all">
+                              {n.description}
                             </p>
                           </div>
                           <span className="text-[10px] font-black text-neutral-300 uppercase tracking-widest mt-1 text-right">
@@ -240,7 +240,7 @@ export default function NotificationsPage() {
         {filteredNotifications.length === 0 && (
           <div className="py-24 flex flex-col items-center justify-center text-center space-y-6">
             <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center text-muted-foreground/30">
-              <Bell size={48} />
+              <BellRing size={48} />
             </div>
             <div className="space-y-1">
               <h3 className="text-xl font-black text-foreground">Você está em dia!</h3>

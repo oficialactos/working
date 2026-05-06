@@ -42,31 +42,31 @@
 
   /* ─── Light Mode Overrides ─────────────────────────────────── */
   html.light {
-    --background:  210 40% 98%;      /* #F8FAFC very light slate */
-    --foreground:  220 25% 10%;
+    --background:  210 40% 99%;      /* Softer off-white #F9FAFB */
+    --foreground:  220 40% 10%;      /* Deep Slate for better readability */
     --card:        0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 220 40% 10%;
     --popover:     0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 220 40% 10%;
     --primary:     216 31% 11%;
     --primary-foreground: 0 0% 98%;
-    --secondary:   210 40% 96%;
-    --secondary-foreground: 220 25% 10%;
-    --muted:       210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent:      40 44% 51%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 51%;
+    --secondary:   210 30% 97%;      /* Very soft secondary background */
+    --secondary-foreground: 220 40% 10%;
+    --muted:       210 30% 97%;
+    --muted-foreground: 215 16% 40%; /* Slightly darker for better accessibility */
+    --accent:      40 44% 51%;       /* Consistent gold #B8924A */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border:      214 32% 91%;
-    --input:       210 40% 96%;
+    --border:      210 20% 93%;      /* Subtle borders */
+    --input:       210 30% 97%;
     --ring:        40 44% 51%;
 
     /* Theme-aware patterns & effects (Light) */
-    --pattern-color: rgba(0, 0, 0, 0.02);
-    --dot-color: rgba(0, 0, 0, 0.04);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(0, 0, 0, 0.06);
+    --pattern-color: rgba(0, 0, 0, 0.015);
+    --dot-color: rgba(0, 0, 0, 0.03);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.05);
     --sidebar-bg: 0 0% 100%;
   }
 }

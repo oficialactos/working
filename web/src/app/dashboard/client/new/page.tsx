@@ -501,37 +501,8 @@ export default function NewRequestPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-20">
-      {/* Professional Stepper Header */}
-      <header className="relative z-50 py-6 border-b border-border flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={() => step > 1 ? prevStep() : router.back()} 
-            className="flex items-center gap-2 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-[#B8924A] transition-colors group px-2"
-          >
-            <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            {step === 1 ? 'Sair' : 'Voltar'}
-          </button>
-          
-          <div className="flex gap-2">
-            {[1, 2, 3].map((s) => (
-              <div 
-                key={s} 
-                className={cn(
-                  "h-1.5 rounded-full transition-all duration-700",
-                  s === step ? "w-10 md:w-16 bg-[#B8924A] shadow-[0_0_12px_#B8924A40]" : s < step ? "w-4 bg-[#B8924A]/40" : "w-4 bg-muted"
-                )}
-              />
-            ))}
-          </div>
-
-          <span className="hidden sm:inline text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-2">
-             Passo {step} / 03
-          </span>
-        </div>
-      </header>
-
-      <main className="mt-16 px-4">
+    <div className="max-w-5xl mx-auto pb-20 px-4">
+      <main className="mt-8">
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div 
@@ -544,12 +515,29 @@ export default function NewRequestPage() {
               {!selectedCat ? (
                 <>
                   <div className="space-y-6">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#B8924A]/10 border border-[#B8924A]/20 rounded-full w-fit">
-                        <Sparkles size={14} className="text-[#B8924A]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#B8924A]">Novo Pedido</span>
+                    <div className="flex items-center justify-between w-full">
+                      <button 
+                        onClick={() => router.back()} 
+                        className="flex items-center gap-2 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-[#B8924A] transition-colors group"
+                      >
+                        <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                        Sair
+                      </button>
+                      
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3].map((s) => (
+                          <div 
+                            key={s} 
+                            className={cn(
+                              "h-1 rounded-full transition-all duration-700",
+                              s === step ? "w-6 bg-[#B8924A]" : s < step ? "w-2 bg-[#B8924A]/40" : "w-2 bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
                     </div>
                     <div className="space-y-4">
-                      <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground leading-[0.9]">O que você <br /> <span className="text-gradient-gold">precisa resolver?</span></h1>
+                      <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground leading-[1.1] pr-4">O que você <br /> <span className="text-gradient-gold">precisa resolver?</span></h1>
                       <p className="text-muted-foreground font-bold text-lg md:text-xl max-w-xl">Selecione o grupo de serviço para começarmos seu projeto.</p>
                     </div>
                   </div>
@@ -579,12 +567,26 @@ export default function NewRequestPage() {
               ) : (
                 <>
                   <div className="space-y-6">
-                    <button 
-                      onClick={() => { setSelectedCat(null); setSelectedSubCat(null); }}
-                      className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B8924A] flex items-center gap-2 hover:opacity-70 transition-opacity"
-                    >
-                      <ChevronLeft size={16} /> Trocar grupo de serviço
-                    </button>
+                    <div className="flex items-center justify-between w-full">
+                      <button 
+                        onClick={() => { setSelectedCat(null); setSelectedSubCat(null); }}
+                        className="text-[10px] font-black uppercase tracking-[0.2em] text-[#B8924A] flex items-center gap-2 hover:opacity-70 transition-opacity"
+                      >
+                        <ChevronLeft size={16} /> Trocar grupo de serviço
+                      </button>
+                      
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3].map((s) => (
+                          <div 
+                            key={s} 
+                            className={cn(
+                              "h-1 rounded-full transition-all duration-700",
+                              s === step ? "w-6 bg-[#B8924A]" : s < step ? "w-2 bg-[#B8924A]/40" : "w-2 bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4">
                          <div className="w-16 h-16 rounded-3xl bg-[#B8924A]/10 flex items-center justify-center text-[#B8924A]">
@@ -655,9 +657,26 @@ export default function NewRequestPage() {
               className="space-y-12"
             >
               <div className="space-y-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full w-fit">
-                    <Info size={12} strokeWidth={3} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Detalhamento</span>
+                <div className="flex items-center justify-between w-full">
+                  <button 
+                    onClick={prevStep} 
+                    className="flex items-center gap-2 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-[#B8924A] transition-colors group"
+                  >
+                    <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    Voltar
+                  </button>
+                  
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3].map((s) => (
+                      <div 
+                        key={s} 
+                        className={cn(
+                          "h-1 rounded-full transition-all duration-700",
+                          s === step ? "w-6 bg-blue-500" : s < step ? "w-2 bg-blue-500/40" : "w-2 bg-muted"
+                        )}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <h1 className="text-5xl font-black tracking-tighter text-foreground leading-[0.9]">Conte os <br /> <span className="text-[#B8924A]">detalhes.</span></h1>
                 <p className="text-muted-foreground font-bold text-lg">Quanto mais informações, melhores os orçamentos.</p>
@@ -774,9 +793,26 @@ export default function NewRequestPage() {
               className="space-y-12"
             >
               <div className="space-y-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full w-fit">
-                    <CheckCircle2 size={12} strokeWidth={3} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Finalização</span>
+                <div className="flex items-center justify-between w-full">
+                  <button 
+                    onClick={prevStep} 
+                    className="flex items-center gap-2 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-[#B8924A] transition-colors group"
+                  >
+                    <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    Voltar
+                  </button>
+                  
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3].map((s) => (
+                      <div 
+                        key={s} 
+                        className={cn(
+                          "h-1 rounded-full transition-all duration-700",
+                          s === step ? "w-6 bg-emerald-500" : s < step ? "w-2 bg-emerald-500/40" : "w-2 bg-muted"
+                        )}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <h1 className="text-5xl font-black tracking-tighter text-foreground leading-[0.9]">Onde será <br /> <span className="text-[#B8924A]">o serviço?</span></h1>
                 <p className="text-muted-foreground font-bold text-lg">Confirme o endereço para calcularmos o deslocamento.</p>

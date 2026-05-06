@@ -20,7 +20,8 @@ import {
   Navigation,
   Info,
   ChevronRight,
-  X
+  X,
+  Award
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +41,9 @@ export default function LeadDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [myProposalStatus, setMyProposalStatus] = useState<string | null>(null); // null = not sent yet
+  const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
+  const [session, setSession] = useState<any>(null);
 
   // Notification state
   const [notif, setNotif] = useState<{
@@ -61,6 +65,10 @@ export default function LeadDetailsPage() {
   useEffect(() => {
     const fetchLead = async () => {
       setLoading(true);
+
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
+
       const { data, error } = await supabase
         .from('service_requests')
         .select(`
@@ -74,12 +82,73 @@ export default function LeadDetailsPage() {
         setError('Oportunidade não encontrada.');
       } else {
         setLead(data);
+
+        // Check if this provider already has a proposal for this request
+        if (currentSession) {
+          const { data: existingProposal } = await supabase
+            .from('proposals')
+            .select('status')
+            .eq('request_id', params.id)
+            .eq('provider_id', currentSession.user.id)
+            .maybeSingle();
+
+          if (existingProposal) {
+            setMyProposalStatus(existingProposal.status);
+          }
+        }
       }
       setLoading(false);
     };
 
     fetchLead();
   }, [params.id]);
+
+  const handleStartChat = async () => {
+    if (!session || !lead) return;
+    setLoadingChatId(session.user.id);
+    try {
+      // Check if chat already exists
+      const { data: existingChat } = await supabase
+        .from('chats')
+        .select('id')
+        .eq('request_id', params.id)
+        .eq('provider_id', session.user.id)
+        .maybeSingle();
+
+      if (existingChat) {
+        router.push(`/dashboard/chat?id=${existingChat.id}`);
+        return;
+      }
+
+      // Create new chat
+      const { data: newChat, error } = await supabase
+        .from('chats')
+        .insert({
+          request_id: params.id,
+          client_id: lead.client_id,
+          provider_id: session.user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (newChat) {
+        // Update request status to in_progress
+        await supabase
+          .from('service_requests')
+          .update({ status: 'in_progress' })
+          .eq('id', params.id);
+
+        router.push(`/dashboard/chat?id=${newChat.id}`);
+      }
+    } catch (err: any) {
+      console.error('Error starting chat:', err);
+      showNotification('error', 'Erro', 'Não foi possível iniciar a conversa. Tente novamente.');
+    } finally {
+      setLoadingChatId(null);
+    }
+  };
 
   useEffect(() => {
     if (lead && requestVisit) {
@@ -173,6 +242,12 @@ export default function LeadDetailsPage() {
         }
         setIsSubmitting(false);
       } else {
+        // Update request status to in_progress
+        await supabase
+          .from('service_requests')
+          .update({ status: 'in_progress' })
+          .eq('id', params.id);
+          
         // --- NEW: Automatically create chat and send the message ---
         try {
           // 1. Create/Get chat
@@ -264,7 +339,7 @@ export default function LeadDetailsPage() {
             <div className="flex items-center gap-3 mb-2">
               <Badge className="bg-[#B8924A] text-white flex items-center gap-1.5 rounded-md border-none uppercase font-black text-[10px] tracking-widest">
                 <Zap size={14} className="fill-current" />
-                {lead.status === 'open' ? 'Aberto' : lead.status}
+                {lead.status === 'open' ? 'Aberto' : lead.status === 'in_progress' ? 'Em andamento' : lead.status === 'completed' ? 'Concluído' : lead.status}
               </Badge>
               <div className="flex items-center gap-1.5 text-xs font-black text-green-600 uppercase tracking-widest">
                 <CheckCircle2 size={14} />
@@ -352,7 +427,7 @@ export default function LeadDetailsPage() {
                     <div 
                       key={i} 
                       onClick={() => setSelectedMedia(url)}
-                      className="aspect-square bg-neutral-50 rounded-[2rem] border-2 border-neutral-100 overflow-hidden group cursor-pointer hover:border-[#B8924A]/30 transition-all shadow-sm relative"
+                      className="aspect-square bg-muted rounded-[2rem] border-2 border-border overflow-hidden group cursor-pointer hover:border-[#B8924A]/30 transition-all shadow-sm relative"
                     >
                       {isVideo ? (
                         <div className="w-full h-full relative">
@@ -387,10 +462,84 @@ export default function LeadDetailsPage() {
           </div>
         </main>
 
-        {/* Sidebar: Proposal Form */}
+        {/* Sidebar: Proposal Form or Locked State */}
         <aside className="lg:col-span-4 sticky top-32 space-y-8">
           <Card className="border-2 border-border bg-card p-8 rounded-[2rem] shadow-2xl shadow-black/10 transition-transform hover:-translate-y-1">
             <div className="space-y-6">
+
+              {/* Locked: Request already completed (another provider was selected) */}
+              {lead.status === 'completed' && myProposalStatus !== 'accepted' ? (
+                <div className="flex flex-col items-center gap-6 py-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border">
+                    <ShieldCheck size={36} className="text-muted-foreground/40" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-black tracking-tight text-foreground">Oportunidade Encerrada</h2>
+                    <p className="text-sm font-bold text-muted-foreground italic leading-relaxed">
+                      O cliente já selecionou um prestador para este serviço. Fique de olho em novas oportunidades!
+                    </p>
+                  </div>
+                  <Button variant="outline" fullWidth className="h-12 rounded-2xl font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/provider/feed')}>
+                    Ver Outras Oportunidades
+                  </Button>
+                </div>
+              ) : myProposalStatus === 'pending' ? (
+                /* Already submitted a proposal */
+                <div className="flex flex-col items-center gap-6 py-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-[#B8924A]/10 flex items-center justify-center border border-[#B8924A]/20">
+                    <CheckCircle2 size={36} className="text-[#B8924A]" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-black tracking-tight text-foreground">Proposta Enviada</h2>
+                    <p className="text-sm font-bold text-muted-foreground italic leading-relaxed">
+                      Você já enviou uma proposta para este serviço. Aguarde a resposta do cliente.
+                    </p>
+                  </div>
+                  <Button variant="outline" fullWidth className="h-12 rounded-2xl font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/provider')}>
+                    Minha Dashboard
+                  </Button>
+                </div>
+              ) : myProposalStatus === 'accepted' ? (
+                /* Proposal was accepted! */
+                <div className="flex flex-col items-center gap-6 py-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                    <Award size={36} className="text-green-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-black tracking-tight text-foreground">Proposta Aceita!</h2>
+                    <p className="text-sm font-bold text-muted-foreground italic leading-relaxed">
+                      Parabéns! O cliente aceitou sua proposta. Combine os detalhes finais através do chat.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="primary" 
+                    fullWidth 
+                    className="h-16 rounded-2xl font-black text-xs uppercase tracking-widest bg-green-600 hover:bg-green-700 text-white shadow-xl shadow-green-500/20"
+                    onClick={handleStartChat}
+                    disabled={loadingChatId !== null}
+                  >
+                    {loadingChatId ? 'Abrindo Chat...' : 'Abrir Chat com Cliente'}
+                  </Button>
+                </div>
+              ) : myProposalStatus === 'rejected' ? (
+                /* Proposal was rejected */
+                <div className="flex flex-col items-center gap-6 py-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border border-border">
+                    <ShieldCheck size={36} className="text-muted-foreground/40" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-black tracking-tight text-foreground">Não Selecionado</h2>
+                    <p className="text-sm font-bold text-muted-foreground italic leading-relaxed">
+                      O cliente optou por outro profissional para este serviço. Continue explorando novas oportunidades!
+                    </p>
+                  </div>
+                  <Button variant="outline" fullWidth className="h-12 rounded-2xl font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/provider/feed')}>
+                    Ver Outras Oportunidades
+                  </Button>
+                </div>
+              ) : (
+                /* Open: Show normal proposal form */
+                <>
               <header className="space-y-1">
                 <h2 className="text-2xl font-black tracking-tight text-foreground">Envie sua Proposta</h2>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Inicie o contato agora</p>
@@ -480,6 +629,8 @@ export default function LeadDetailsPage() {
                   Confirmar e Enviar
                 </Button>
               </form>
+              </>
+              )}
             </div>
           </Card>
 

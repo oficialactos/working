@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -8,7 +8,7 @@ import {
   Briefcase,
   MessageSquare,
   Search,
-  Bell,
+  BellRing,
   Settings,
   LogOut,
   User,
@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Sun,
   Moon,
+  Home,
 } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -73,9 +74,47 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const [loadingNotifications, setLoadingNotifications] = useState(true);
   const [hasNotificationsTable, setHasNotificationsTable] = useState(true);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [activeServices, setActiveServices] = useState(0);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
+  // Close notifications on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    if (isNotificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
-  const markAllAsRead = () => setNotifications((ns) => ns.map((n) => ({ ...n, unread: false })));
+  const clearNotifications = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Optimistic update
+      setNotifications([]);
+
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error clearing notifications:', err);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -108,6 +147,16 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             avatarUrl,
           });
           setAuthLoading(false);
+
+          // Fetch active services count for client greeting
+          if (role === 'client') {
+            const { count } = await supabase
+              .from('service_requests')
+              .select('*', { count: 'exact', head: true })
+              .eq('client_id', user.id)
+              .in('status', ['open', 'in_progress']);
+            if (mounted) setActiveServices(count || 0);
+          }
         }
       } catch (err) {
         console.error('Dashboard auth error:', err);
@@ -215,8 +264,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const isProvider = pathname.includes('/provider') || userData.role === 'provider';
 
   const clientNav: NavItem[] = [
-    { label: 'Visão Geral',   href: '/dashboard/client',          icon: LayoutDashboard },
-    { label: 'Meus Pedidos',  href: '/dashboard/client/requests',  icon: Briefcase },
+    { label: 'Início',        href: '/dashboard/client',          icon: Home },
+    { label: 'Pedidos',       href: '/dashboard/client/requests',  icon: Briefcase },
     { label: 'Mensagens',     href: '/dashboard/chat',             icon: MessageSquare },
     { label: 'Meu Perfil',    href: '/dashboard/profile',          icon: User },
     { label: 'Configurações', href: '/dashboard/settings',         icon: Settings },
@@ -307,7 +356,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
         {/* user card */}
         <div className="p-3">
-          <div className="absolute bottom-16 inset-x-3 h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+          <div className="absolute bottom-16 inset-x-3 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           <div
             className="flex items-center gap-3 p-3.5 rounded-2xl bg-muted/30 border border-border hover:bg-muted/50 hover:border-accent/20 transition-all cursor-pointer group mt-3 relative"
           >
@@ -362,11 +411,29 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="absolute top-0 inset-x-10 h-px bg-gradient-to-r from-transparent via-[#B8924A]/20 to-transparent" />
 
           {/* top bar */}
-          {!isChatOpen && (
-            <header className="flex items-center justify-between px-4 md:px-8 py-5 border-b border-white/[0.05] bg-white/[0.01] backdrop-blur-sm sticky top-0 z-40 shrink-0">
-            <div className="flex items-center gap-3"></div>
+          {!isChatOpen && pathname !== '/dashboard/client/new' && (
+            <header className="flex items-center justify-between px-4 md:px-8 py-5 border-b border-border bg-background/60 backdrop-blur-md sticky top-0 z-40 shrink-0">
+            <div className="flex items-center gap-3">
+              {!isChatOpen && pathname === '/dashboard/client' && userData.role === 'client' && (
+                <div className="space-y-0.5">
+                  <h1 className="text-xl font-black tracking-tight text-foreground leading-none">
+                    Olá, {userData.name.split(' ')[0]}!
+                  </h1>
+                  <p className="text-muted-foreground font-bold text-[11px]">
+                    {activeServices > 0
+                      ? `Você tem ${activeServices} ${activeServices === 1 ? 'serviço' : 'serviços'} ativos.`
+                      : 'Como podemos ajudar hoje?'}
+                  </p>
+                </div>
+              )}
+              {!isChatOpen && pathname === '/dashboard/profile' && (
+                <h1 className="text-xl font-black tracking-tight text-foreground leading-none">
+                  Perfil
+                </h1>
+              )}
+            </div>
 
-            <div className="flex items-center gap-1.5 md:gap-3 relative">
+            <div className="flex items-center gap-1.5 md:gap-3 relative" ref={notificationsRef}>
               {/* theme toggle */}
               <button
                 onClick={toggleTheme}
@@ -386,37 +453,28 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     : 'hover:bg-muted text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Bell size={19} />
+                <BellRing size={19} className="animate-pulse" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-[#B8924A] rounded-full border border-[#0C1018] animate-pulse shadow-[0_0_6px_#B8924A]" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-[#B8924A] rounded-full border border-background animate-pulse shadow-[0_0_6px_#B8924A]" />
                 )}
               </button>
 
-              {/* notification dropdown */}
               <AnimatePresence>
                 {isNotificationsOpen && (
-                  <>
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setIsNotificationsOpen(false)}
-                      className="fixed inset-0 z-50 pointer-events-auto"
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      className="absolute top-full right-[-10px] md:right-0 mt-3 w-[calc(100vw-2rem)] md:w-96 bg-popover border border-border rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.15)] z-[60] overflow-hidden"
-                    >
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    className="absolute top-full right-[-10px] md:right-0 mt-3 w-[calc(100vw-2rem)] md:w-96 bg-popover border border-border rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.15)] z-[60] overflow-hidden"
+                  >
                       <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-[#B8924A]/25 to-transparent" />
                       <div className="p-6 pb-4 flex items-center justify-between">
                         <h3 className="text-base font-black text-foreground">Notificações</h3>
                         <button
-                          onClick={markAllAsRead}
-                          className="text-[10px] uppercase tracking-widest font-black text-[#B8924A] hover:text-[#d4af71] transition-colors"
+                          onClick={clearNotifications}
+                          className="px-3 py-1 rounded-full bg-red-500/10 text-[9px] uppercase tracking-widest font-black text-red-500 hover:bg-red-500/20 transition-all"
                         >
-                          Marcar lidas
+                          Limpar Tudo
                         </button>
                       </div>
 
@@ -443,14 +501,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                 'bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A]',
                               )}>
                                 {n.type === 'message' ? <MessageSquare size={15} /> :
-                                 n.type === 'success' ? <CheckCircle2 size={15} /> : <Bell size={15} />}
+                                 n.type === 'success' ? <CheckCircle2 size={15} /> : <BellRing size={15} />}
                               </div>
-                              <div className="flex-1 space-y-0.5">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="font-black text-sm text-foreground truncate">{n.title}</p>
-                                  <span className="text-[10px] font-bold text-muted-foreground shrink-0">{n.time}</span>
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="font-bold text-[13px] text-foreground leading-tight">{n.title}</p>
+                                  <span className="text-[9px] font-medium text-muted-foreground shrink-0 mt-0.5">{n.time}</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground font-bold leading-relaxed line-clamp-2">{n.description}</p>
+                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed line-clamp-2 break-all">{n.description}</p>
                               </div>
                               {n.unread && (
                                 <div className="shrink-0 flex items-center">
@@ -461,13 +519,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                           ))
                         ) : (
                           <div className="py-12 px-6 text-center space-y-3 opacity-30">
-                            <Bell size={32} className="mx-auto" />
+                            <BellRing size={32} className="mx-auto" />
                             <p className="text-xs font-black uppercase tracking-widest">Nenhuma notificação real</p>
                           </div>
                         )}
                       </div>
 
-                      <div className="p-3 border-t border-white/[0.05]">
+                      <div className="p-3 border-t border-border">
                         <Button
                           onClick={() => { setIsNotificationsOpen(false); router.push('/dashboard/notifications'); }}
                           fullWidth
@@ -478,7 +536,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                         </Button>
                       </div>
                     </motion.div>
-                  </>
                 )}
               </AnimatePresence>
 
@@ -503,11 +560,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <div
             className={cn(
               "flex-1 no-scrollbar overflow-x-hidden",
-              isChatOpen ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
+              (isChatOpen || pathname === '/dashboard/client') ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
             )}
-            style={!isChatOpen ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
+            style={!(isChatOpen || pathname === '/dashboard/client') ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
           >
-            <div className={cn("mx-auto w-full", isChatOpen ? "h-full" : "max-w-[1400px]")}>
+            <div className={cn("mx-auto w-full", (isChatOpen || pathname === '/dashboard/client') ? "h-full" : "max-w-[1400px]")}>
               {children}
             </div>
           </div>
@@ -516,16 +573,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* ── Mobile Bottom Nav ────────────────────────────────────── */}
       {!hideMobileNav && (
         <nav
-          className="md:hidden fixed bottom-0 inset-x-0 bg-[#0C1018] border-t border-white/[0.05] z-[60] flex items-center justify-between px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
+          className="md:hidden fixed bottom-0 inset-x-0 bg-background border-t border-border z-[60] flex items-center justify-between px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] rounded-t-[2.5rem]"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', height: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}
         >
         {/* Left side items */}
-        <div className="flex flex-1 justify-around items-center">
-          {navItems.slice(0, 2).map((item, index) => {
+        <div className="flex flex-1 justify-evenly items-center">
+          {navItems.slice(0, 2).map((item) => {
             const isActive = pathname === item.href;
-            const label = isProvider
-              ? (index === 0 ? 'Painel' : 'Serviços')
-              : (index === 0 ? 'Geral' : 'Pedidos');
             return (
               <Link
                 key={item.href}
@@ -536,7 +590,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <item.icon size={22} className={cn('transition-all duration-300', isActive && 'scale-110')} />
-                <span className="text-xs font-medium">{label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
           })}
@@ -568,10 +622,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Right side items */}
-        <div className="flex flex-1 justify-around items-center">
-          {navItems.slice(2, 4).map((item, index) => {
+        <div className="flex flex-1 justify-evenly items-center">
+          {navItems.slice(2, 4).map((item) => {
             const isActive = pathname === item.href;
-            const label = index === 0 ? 'Mensagens' : 'Perfil';
             return (
               <Link
                 key={item.href}
@@ -582,7 +635,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <item.icon size={22} className={cn('transition-all duration-300', isActive && 'scale-110')} />
-                <span className="text-xs font-medium">{label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
           })}

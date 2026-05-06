@@ -82,7 +82,7 @@ function AuthContent() {
       }
     };
     checkAuth();
-    
+
     const m = searchParams.get('mode');
     const r = searchParams.get('role');
     if (mounted) {

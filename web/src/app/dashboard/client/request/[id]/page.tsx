@@ -173,6 +173,12 @@ export default function ClientRequestDetailsPage() {
       if (error) throw error;
 
       if (newChat) {
+        // Update request status to in_progress
+        await supabase
+          .from('service_requests')
+          .update({ status: 'in_progress' })
+          .eq('id', params.id);
+          
         router.push(`/dashboard/chat?id=${newChat.id}`);
       }
     } catch (err: any) {
@@ -237,10 +243,10 @@ export default function ClientRequestDetailsPage() {
         .eq('id', proposal.id);
       if (acceptErr) throw acceptErr;
 
-      // 2. Update request status to in_progress
+      // 2. Update request status to completed
       const { error: requestErr } = await supabase
         .from('service_requests')
-        .update({ status: 'in_progress' })
+        .update({ status: 'completed' })
         .eq('id', request.id);
       if (requestErr) throw requestErr;
 
@@ -299,6 +305,8 @@ export default function ClientRequestDetailsPage() {
       setAcceptingId(null);
     }
   };
+
+  const currentStatus = request && (request.status === 'open' && proposals.length > 0) ? 'in_progress' : request?.status;
 
   const statusLabels: Record<string, string> = {
     'completed': 'Concluído',
@@ -362,7 +370,14 @@ export default function ClientRequestDetailsPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
               <div className="flex flex-col items-start gap-2 mb-3">
-                <Badge variant="primary" className="bg-blue-500/10 text-blue-500 border-none outline-none w-fit">{statusLabels[request.status] || request.status}</Badge>
+                <Badge variant="primary" className={cn(
+                  "border-none outline-none w-fit",
+                  currentStatus === 'completed' ? "bg-green-500/10 text-green-500" :
+                  currentStatus === 'in_progress' ? "bg-blue-500/10 text-blue-500" :
+                  "bg-[#B8924A]/10 text-[#B8924A]"
+                )}>
+                  {statusLabels[currentStatus] || currentStatus}
+                </Badge>
                 <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground/40 uppercase tracking-widest">
                   <Clock size={12} />
                   <span>{timeAgo}</span>
@@ -503,16 +518,23 @@ export default function ClientRequestDetailsPage() {
           {/* Proposals Section */}
           <section className="space-y-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-black tracking-tight text-foreground">Propostas Disponíveis</h2>
-              <button className="text-xs font-black uppercase tracking-widest text-blue-500 flex items-center gap-2">
-                Ordernar por <ChevronRight size={14} className="rotate-90" />
-              </button>
+              <h2 className="text-3xl font-black tracking-tight text-foreground">
+                {currentStatus === 'completed' ? 'Proposta Aceita' : currentStatus === 'in_progress' ? 'Propostas Recebidas' : 'Propostas Disponíveis'}
+              </h2>
+              {currentStatus === 'completed' && (
+                <Badge className="bg-green-500/10 text-green-600 border-green-500/20 font-black text-[10px] uppercase tracking-widest">
+                  <CheckCircle2 size={12} className="mr-1" /> Prestador Selecionado
+                </Badge>
+              )}
             </div>
 
             <div className="space-y-6">
               <AnimatePresence>
                 {proposals.length > 0 ? proposals.map((prop, i) => {
                   const propTime = formatDistanceToNow(new Date(prop.created_at), { locale: ptBR, addSuffix: true });
+                  const isAccepted = prop.status === 'accepted';
+                  const isRejected = prop.status === 'rejected';
+                  const isClosed = currentStatus === 'completed';
                   
                   return (
                     <motion.div
@@ -521,10 +543,17 @@ export default function ClientRequestDetailsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
                     >
-                      <Card className="group overflow-hidden transition-all duration-300 bg-card border-border hover:border-[#B8924A]/30 shadow-sm">
+                      <Card className={cn(
+                        "group overflow-hidden transition-all duration-300 shadow-sm",
+                        isAccepted
+                          ? "border-green-500/40 bg-green-500/5 ring-1 ring-green-500/20"
+                          : isRejected
+                          ? "border-border bg-card opacity-50"
+                          : "bg-card border-border hover:border-[#B8924A]/30"
+                      )}>
                         <CardContent className="pt-8 px-5 pb-5 md:p-8">
                           <div className="flex flex-col gap-6">
-                            {/* Top info: Provider + Price */}
+                            {/* Top info: Provider + Price + Status Badge */}
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-muted flex items-center justify-center font-black text-sm text-[#B8924A] border border-border overflow-hidden shrink-0">
@@ -535,12 +564,22 @@ export default function ClientRequestDetailsPage() {
                                   )}
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
                                     <h4 className="text-lg font-black tracking-tight text-foreground truncate">{formatName(prop.profiles?.full_name, 'Prestador')}</h4>
                                     <div className="flex items-center gap-1 bg-[#B8924A]/10 px-1.5 py-0.5 rounded-md border border-[#B8924A]/20 shrink-0">
                                       <Star size={10} fill="#B8924A" className="text-[#B8924A]" />
                                       <span className="text-[10px] font-black text-[#B8924A]">{prop.profiles?.rating_avg?.toFixed(1) || '5.0'}</span>
                                     </div>
+                                    {isAccepted && (
+                                      <span className="text-[10px] font-black uppercase tracking-widest bg-green-500/10 text-green-600 border border-green-500/20 px-2 py-0.5 rounded-md">
+                                        ✓ Aceito
+                                      </span>
+                                    )}
+                                    {isRejected && isClosed && (
+                                      <span className="text-[10px] font-black uppercase tracking-widest bg-muted text-muted-foreground/60 border border-border px-2 py-0.5 rounded-md">
+                                        Não selecionado
+                                      </span>
+                                    )}
                                   </div>
                                   <div className="flex items-center gap-2 mt-0.5">
                                     <span className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">{propTime}</span>
@@ -576,25 +615,40 @@ export default function ClientRequestDetailsPage() {
                                </p>
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex gap-3">
-                               <Button 
-                                  variant="outline" 
+                            {/* Actions Block */}
+                            {isAccepted ? (
+                              /* Accepted proposal: show chat button only */
+                              <div className="flex gap-3">
+                                <Button
+                                  variant="outline"
                                   className="flex-1 h-12 rounded-xl font-black bg-muted/20 border-border text-xs"
                                   onClick={() => handleStartChat(prop.provider_id || prop.prestador_id || prop.user_id || prop.id_prestador)}
                                   disabled={loadingChatId === (prop.provider_id || prop.prestador_id || prop.user_id || prop.id_prestador)}
                                 >
-                                 <MessageSquare size={16} className="mr-2" /> Chat
-                               </Button>
-                               <Button 
-                                  variant="primary" 
+                                  <MessageSquare size={16} className="mr-2" /> Abrir Chat
+                                </Button>
+                              </div>
+                            ) : !isClosed ? (
+                              /* Open request: show full actions */
+                              <div className="flex gap-3">
+                                <Button
+                                  variant="outline"
+                                  className="flex-1 h-12 rounded-xl font-black bg-muted/20 border-border text-xs"
+                                  onClick={() => handleStartChat(prop.provider_id || prop.prestador_id || prop.user_id || prop.id_prestador)}
+                                  disabled={loadingChatId === (prop.provider_id || prop.prestador_id || prop.user_id || prop.id_prestador)}
+                                >
+                                  <MessageSquare size={16} className="mr-2" /> Chat
+                                </Button>
+                                <Button
+                                  variant="primary"
                                   className="flex-[2] h-12 rounded-xl text-xs font-black bg-foreground text-background active:scale-95 transition-all"
                                   onClick={() => handleAcceptProposal(prop)}
                                   disabled={acceptingId === prop.id}
                                 >
-                                 {acceptingId === prop.id ? 'Processando...' : 'Aceitar Proposta'}
-                               </Button>
-                            </div>
+                                  {acceptingId === prop.id ? 'Processando...' : 'Aceitar Proposta'}
+                                </Button>
+                              </div>
+                            ) : null /* Rejected proposals in a closed request: no actions */}
                           </div>
                         </CardContent>
                       </Card>
@@ -617,35 +671,71 @@ export default function ClientRequestDetailsPage() {
           <Card className="p-8 border-border bg-card rounded-[2rem] shadow-xl shadow-black/5">
             <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground/60 mb-6 italic">Status da Solicitação</h4>
             <div className="space-y-6">
-               <div className="flex gap-4 relative">
-                 <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
-                 <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 border border-green-500/20">
-                    <CheckCircle2 size={12} className="text-green-600" />
-                 </div>
-                 <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Concluído</p>
-                   <p className="text-xs font-black text-foreground">Publicação do pedido</p>
-                 </div>
-               </div>
-               <div className="flex gap-4 relative">
-                 <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
-                 <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 animate-pulse border border-blue-500/20">
+              {/* Step 1: Published */}
+              <div className="flex gap-4 relative">
+                <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
+                <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 border border-green-500/20">
+                  <CheckCircle2 size={12} className="text-green-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-green-600">Concluído</p>
+                  <p className="text-xs font-black text-foreground">Publicação do pedido</p>
+                </div>
+              </div>
+
+              {/* Step 2: Receiving proposals (active when status='open') */}
+              <div className="flex gap-4 relative">
+                <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center shrink-0 border",
+                  currentStatus === 'open'
+                    ? "bg-blue-500/10 border-blue-500/20 animate-pulse"
+                    : "bg-green-500/10 border-green-500/20"
+                )}>
+                  {currentStatus === 'open' ? (
                     <div className="w-2 h-2 rounded-full bg-blue-600" />
-                 </div>
-                 <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-blue-500">Em andamento</p>
-                   <p className="text-xs font-black text-foreground">Recebendo propostas</p>
-                 </div>
-               </div>
-               <div className="flex gap-4 grayscale opacity-30">
-                 <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center shrink-0 border border-border">
+                  ) : (
+                    <CheckCircle2 size={12} className="text-green-600" />
+                  )}
+                </div>
+                <div>
+                  <p className={cn(
+                    "text-[10px] font-black uppercase tracking-widest",
+                    currentStatus === 'open' ? "text-blue-500" : "text-green-600"
+                  )}>
+                    {currentStatus === 'open' ? 'Em andamento' : 'Concluído'}
+                  </p>
+                  <p className="text-xs font-black text-foreground">Recebendo propostas</p>
+                </div>
+              </div>
+
+              {/* Step 3: Provider selected (active when status='completed') */}
+              <div className={cn(
+                "flex gap-4",
+                currentStatus !== 'completed' && "grayscale opacity-30"
+              )}>
+                <div className={cn(
+                  "w-6 h-6 rounded-full flex items-center justify-center shrink-0 border",
+                  currentStatus === 'completed'
+                    ? "bg-green-500/10 border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.1)]"
+                    : "bg-muted border-border"
+                )}>
+                  {currentStatus === 'completed' ? (
+                    <CheckCircle2 size={12} className="text-green-600" />
+                  ) : (
                     <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                 </div>
-                 <div>
-                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Aguardando</p>
-                   <p className="text-xs font-black text-foreground">Seleção do prestador</p>
-                 </div>
-               </div>
+                  )}
+                </div>
+                <div>
+                  <p className={cn(
+                    "text-[10px] font-black uppercase tracking-widest",
+                    currentStatus === 'completed' ? "text-green-600" : "text-muted-foreground/40"
+                  )}>
+                    {currentStatus === 'completed' ? 'Concluído' : 'Aguardando'}
+                  </p>
+                  <p className="text-xs font-black text-foreground">Prestador selecionado</p>
+                </div>
+              </div>
             </div>
           </Card>
         </aside>

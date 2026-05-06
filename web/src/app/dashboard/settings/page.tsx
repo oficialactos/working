@@ -5,8 +5,8 @@ import { useState, useEffect, Suspense } from 'react';
 import {
   User,
   Mail,
+  BellRing,
   Lock,
-  Bell,
   CreditCard,
   Shield,
   Save,
@@ -20,6 +20,7 @@ import {
   Video,
   X,
   Plus,
+  ChevronRight,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -234,7 +235,7 @@ function SettingsContent() {
   const sections = [
     { id: 'personal',      label: 'Dados Pessoais', icon: <User size={18} /> },
     { id: 'security',      label: 'Segurança',      icon: <Shield size={18} /> },
-    { id: 'notifications', label: 'Notificações',   icon: <Bell size={18} /> },
+    { id: 'notifications', label: 'Notificações',   icon: <BellRing size={18} /> },
     ...(isProvider ? [{ id: 'portfolio', label: 'Portfólio', icon: <ImageIcon size={18} /> }] : []),
   ];
 
@@ -279,25 +280,35 @@ function SettingsContent() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         {/* Navigation Sidebar */}
-        <aside className="lg:col-span-3 flex flex-row lg:flex-col gap-1.5 sticky top-24 lg:top-32 z-20 bg-background/80 backdrop-blur-md lg:bg-transparent -mx-4 px-4 py-2 lg:mx-0 lg:px-0 overflow-x-auto no-scrollbar">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveTab(section.id)}
-              className={cn(
-                "flex-shrink-0 flex items-center gap-4 px-5 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest transition-all",
-                activeTab === section.id
-                  ? "bg-[#B8924A]/10 text-[#B8924A] border border-[#B8924A]/20"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
-              )}
-            >
-              <span className={activeTab === section.id ? "text-[#B8924A]" : "text-muted-foreground/50"}>
-                {section.icon}
-              </span>
-              <span className="whitespace-nowrap">{section.label}</span>
-            </button>
-          ))}
-        </aside>
+        <div className="lg:col-span-3 relative group/tabs">
+          <aside className="flex flex-row lg:flex-col gap-1.5 sticky top-24 lg:top-32 z-20 bg-background/80 backdrop-blur-md lg:bg-transparent -mx-4 px-4 py-2 lg:mx-0 lg:px-0 overflow-x-auto no-scrollbar snap-x snap-mandatory lg:snap-none">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveTab(section.id)}
+                className={cn(
+                  "flex-shrink-0 flex items-center gap-4 px-5 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest transition-all snap-start",
+                  activeTab === section.id
+                    ? "bg-[#B8924A]/10 text-[#B8924A] border border-[#B8924A]/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
+                )}
+              >
+                <span className={activeTab === section.id ? "text-[#B8924A]" : "text-muted-foreground/50"}>
+                  {section.icon}
+                </span>
+                <span className="whitespace-nowrap">{section.label}</span>
+              </button>
+            ))}
+          </aside>
+          
+          {/* Horizontal Scroll Indicator (Blur Fade) - Mobile Only */}
+          <div className="absolute right-[-16px] top-2 bottom-2 w-16 bg-gradient-to-l from-background via-background/40 to-transparent pointer-events-none lg:hidden z-30 flex items-center justify-end pr-4">
+            <div className="flex items-center -space-x-1.5 opacity-50">
+              <ChevronRight size={14} className="text-[#B8924A] animate-pulse" />
+              <ChevronRight size={14} className="text-[#B8924A] animate-pulse" style={{ animationDelay: '0.2s' }} />
+            </div>
+          </div>
+        </div>
 
         {/* Content Area */}
         <main className="lg:col-span-9 space-y-10">
@@ -423,7 +434,7 @@ function SettingsContent() {
               <Card className="border-border overflow-hidden rounded-[2.5rem]">
                 <CardHeader className={cardHeaderCls}>
                   <div className="flex items-center gap-4 mb-2">
-                    <div className={iconBoxCls}><Bell size={20} /></div>
+                    <div className={iconBoxCls}><BellRing size={20} /></div>
                     <CardTitle className="text-2xl font-black tracking-tight">Notificações</CardTitle>
                   </div>
                   <CardDescription className="text-sm font-bold text-muted-foreground pl-0 md:pl-14 max-w-2xl">

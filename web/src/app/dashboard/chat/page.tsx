@@ -45,27 +45,57 @@ import { Play, Pause } from 'lucide-react';
 function CustomAudioPlayer({ src }: { src: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
-      setIsPlaying(!isPlaying);
+  const togglePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.error('Audio play error:', err);
+      setIsPlaying(false);
     }
   };
 
   const onTimeUpdate = () => {
-    if (audioRef.current) {
-      const current = audioRef.current.currentTime;
-      const total = audioRef.current.duration;
-      setProgress((current / total) * 100);
-    }
+    const audio = audioRef.current;
+    if (!audio || !isFinite(audio.duration) || audio.duration === 0) return;
+    setCurrentTime(audio.currentTime);
+    setProgress((audio.currentTime / audio.duration) * 100);
   };
 
   const onLoadedMetadata = () => {
-    if (audioRef.current) setDuration(audioRef.current.duration);
+    if (audioRef.current && isFinite(audioRef.current.duration)) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const onEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    if (audioRef.current) audioRef.current.currentTime = 0;
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    const bar = barRef.current;
+    if (!audio || !bar || !isFinite(audio.duration)) return;
+    const rect = bar.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * audio.duration;
+    setProgress(ratio * 100);
+    setCurrentTime(audio.currentTime);
   };
 
   const formatTime = (time: number) => {
@@ -76,32 +106,37 @@ function CustomAudioPlayer({ src }: { src: string }) {
   };
 
   return (
-    <div className="flex items-center gap-4 bg-black/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/5 min-w-[240px] group/audio">
-      <audio 
-        ref={audioRef} 
-        src={src} 
-        onTimeUpdate={onTimeUpdate} 
+    <div className="flex items-center gap-4 bg-muted/30 backdrop-blur-md px-4 py-3 rounded-2xl border border-border min-w-[240px] group/audio">
+      <audio
+        ref={audioRef}
+        src={src}
+        onTimeUpdate={onTimeUpdate}
         onLoadedMetadata={onLoadedMetadata}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={onEnded}
+        preload="metadata"
       />
-      
-      <button 
+
+      <button
+        type="button"
         onClick={togglePlay}
-        className="w-10 h-10 rounded-full bg-[#B8924A] flex items-center justify-center text-[#141B25] hover:scale-105 transition-transform shrink-0 shadow-lg shadow-[#B8924A]/20"
+        className="w-10 h-10 rounded-full bg-[#B8924A] flex items-center justify-center text-white hover:scale-105 transition-transform shrink-0 shadow-lg shadow-[#B8924A]/20"
       >
         {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
       </button>
 
       <div className="flex-1 space-y-1.5">
-        <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            className="absolute top-0 left-0 h-full bg-[#B8924A] rounded-full"
+        <div
+          ref={barRef}
+          onClick={handleSeek}
+          className="relative h-1.5 w-full bg-foreground/10 rounded-full overflow-hidden cursor-pointer"
+        >
+          <div
+            className="absolute top-0 left-0 h-full bg-[#B8924A] rounded-full transition-none"
+            style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/40">
-          <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
+        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">
+          <span>{formatTime(currentTime)}</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
@@ -702,19 +737,23 @@ function ChatContent() {
     <div className="chat-layout-premium">
       {/* Sidebar de Conversas */}
       <aside className="chat-sidebar-v2">
-        <div className="sidebar-header">
-          <h2 className="sidebar-title">Mensagens</h2>
-          <div className="search-pill-v2">
-            <Search size={16} />
-            <input type="text" placeholder="Pesquisar..." />
+        <div className="p-5 pb-4 flex flex-col gap-4 border-b border-border/20">
+          <h2 className="text-2xl font-black text-foreground tracking-tight">Mensagens</h2>
+          <div className="flex items-center gap-2 px-4 py-3 bg-muted/20 border border-border rounded-[16px] text-muted-foreground focus-within:text-[#B8924A] focus-within:border-[#B8924A]/30 transition-all shadow-inner">
+            <Search size={18} />
+            <input 
+              type="text" 
+              placeholder="Pesquisar..." 
+              className="bg-transparent border-none outline-none w-full text-sm font-medium text-foreground placeholder:text-muted-foreground/50"
+            />
           </div>
         </div>
 
-        <div className="chats-scroller">
+        <div className="flex-1 overflow-y-auto p-4 space-y-1 no-scrollbar">
           {loadingChats ? (
-            <div className="p-4 space-y-4">
+            <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-muted animate-pulse rounded-2xl" />
+                <div key={i} className="h-20 bg-white/5 animate-pulse rounded-2xl" />
               ))}
             </div>
           ) : chats.length > 0 ? (
@@ -724,30 +763,45 @@ function ChatContent() {
                 <button
                   key={chat.id}
                   onClick={() => setSelectedChatId(chat.id)}
-                  className={`chat-row-premium ${selectedChatId === chat.id ? 'active' : ''}`}
+                  className={cn(
+                    "w-full flex items-center gap-3.5 p-3.5 rounded-2xl mb-2 transition-all border text-left",
+                    selectedChatId === chat.id 
+                      ? "bg-[#B8924A]/10 border-[#B8924A]/30" 
+                      : "bg-background border-border hover:bg-muted/50 hover:border-border/50"
+                  )}
                 >
-                  <div className="avatar-wrapper overflow-hidden">
+                  <div className="relative shrink-0">
                      {other?.avatar_url ? (
-                       <img src={other.avatar_url} alt={other.full_name} className="w-12 h-12 rounded-[14px] object-cover" />
+                       <img src={other.avatar_url} alt={other.full_name} className="w-14 h-14 rounded-full object-cover border-2 border-transparent" />
                      ) : (
-                       <div className="avatar-placeholder">
+                       <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center font-black text-muted-foreground/50 text-xl border border-border">
                          {other?.full_name?.charAt(0) || '?'}
                        </div>
                      )}
-                     <div className={`status-dot online`} />
+                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
                    </div>
 
-                   <div className="chat-row-content">
-                    <div className="row-top">
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="user-name truncate">{other?.full_name}</span>
-                        {chat.request?.title && (
-                          <span className="text-[10px] font-black uppercase tracking-widest text-[#B8924A] opacity-70 mt-0.5 line-clamp-1">
-                            {chat.request.title}
-                          </span>
-                        )}
+                   <div className="flex-1 overflow-hidden flex flex-col justify-center">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-sm text-foreground truncate pr-2">{other?.full_name}</span>
+                        {/* Placeholder for timestamp if needed */}
+                        <span className="text-[10px] text-muted-foreground/50 font-medium">Agora</span>
                       </div>
-                    </div>
+                      
+                      {chat.request?.title ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#B8924A]/50 shrink-0" />
+                          <span className="text-[11px] font-bold tracking-wide text-[#B8924A] opacity-90 truncate">
+                            {chat.request.title.toUpperCase()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/40 truncate">Toque para ver a conversa</span>
+                      )}
+                  </div>
+                  
+                  <div className="shrink-0 pl-2">
+                    <ChevronRight size={16} className="text-muted-foreground/30" />
                   </div>
                 </button>
               );
@@ -801,7 +855,14 @@ function ChatContent() {
                 </button>
                 <button
                   className={cn("h-action-btn", isHeaderOptionsOpen && "bg-muted text-foreground")}
-                  onClick={() => setIsHeaderOptionsOpen(!isHeaderOptionsOpen)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    requestAnimationFrame(() => {
+                      setIsHeaderOptionsOpen(!isHeaderOptionsOpen);
+                    });
+                  }}
+                  style={{ touchAction: 'none' }}
                 >
                   <MoreVertical size={20} />
                 </button>
@@ -820,7 +881,7 @@ function ChatContent() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute top-full right-0 mt-2 w-56 bg-[#1A222C] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                        className="absolute top-full right-0 mt-2 w-56 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden"
                       >
                         <button 
                           onClick={() => {
@@ -829,7 +890,7 @@ function ChatContent() {
                               handleClearChat();
                             }
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all border-b border-white/5"
+                          className="w-full flex items-center gap-3 px-4 py-4 hover:bg-muted text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all border-b border-border/10"
                         >
                           <Trash2 size={16} className="text-[#B8924A]" /> Limpar Conversa
                         </button>
@@ -856,16 +917,16 @@ function ChatContent() {
               {activeChat.request && otherPerson && (
                 <div className="px-4 pt-5 pb-1 mb-2">
                   {/* Unified context card */}
-                  <div className="flex items-center gap-0 bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+                  <div className="flex items-center gap-0 bg-muted/20 border border-border/20 rounded-2xl overflow-hidden">
 
                     {/* LEFT — service info */}
-                    <div className="flex-1 flex items-center gap-4 px-5 py-4 border-r border-white/[0.06]">
+                    <div className="flex-1 flex items-center gap-4 px-5 py-4 border-r border-border/20">
                       <div className="w-10 h-10 rounded-xl bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center shrink-0">
                         <Zap size={18} className="text-[#B8924A]" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#B8924A]/70 mb-0.5">{activeChat.request.category}</p>
-                        <h2 className="text-sm font-black text-foreground truncate">{activeChat.request.title}</h2>
+                        <h2 className="text-sm font-black text-foreground truncate"> {activeChat.request.title}</h2>
                       </div>
                       <Link
                         href={`/dashboard/client/request/${activeChat.request.id}`}
@@ -886,7 +947,7 @@ function ChatContent() {
                         <p className="text-sm font-black text-foreground truncate">{otherPerson.full_name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[9px] font-black text-[#B8924A]">★ {otherPerson.rating_avg || '5.0'}</span>
-                          <span className="text-white/20 text-[9px]">•</span>
+                          <span className="text-muted-foreground/30 text-[9px]">•</span>
                           <span className="text-[9px] font-black text-muted-foreground/50">{otherPerson.rating_count || '0'} trabalhos</span>
                         </div>
                       </div>
@@ -907,9 +968,9 @@ function ChatContent() {
                   </div>
 
                   <div className="flex items-center gap-4 mt-5 mb-1">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20">Início da Conversa</span>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/10 to-transparent" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/30">Início da Conversa</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border/10 to-transparent" />
                   </div>
                 </div>
               )}
@@ -961,7 +1022,7 @@ function ChatContent() {
                                 />
                               </div>
                             ) : msg.content.startsWith('[VIDEO]:') ? (
-                              <div className="rounded-xl overflow-hidden mb-1 max-w-[300px] border border-white/10 shadow-lg bg-black relative group/vid">
+                              <div className="rounded-xl overflow-hidden mb-1 max-w-[300px] border border-border shadow-lg bg-black relative group/vid">
                                 <video src={msg.content.replace('[VIDEO]:', '')} className="w-full h-auto max-h-[400px]" />
                                 <div 
                                   className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/40 transition-all cursor-pointer"
@@ -1003,9 +1064,14 @@ function ChatContent() {
                         {isMe && !isEditing && (
                           <button 
                             onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               const rect = e.currentTarget.getBoundingClientRect();
-                              setContextMenu({ id: msg.id, x: rect.left, y: rect.top });
+                              requestAnimationFrame(() => {
+                                setContextMenu({ id: msg.id, x: rect.left, y: rect.top });
+                              });
                             }}
+                            style={{ touchAction: 'none' }}
                             className="absolute -left-8 top-1/2 -translate-y-1/2 p-2 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                           >
                             <MoreVertical size={14} />
@@ -1040,24 +1106,24 @@ function ChatContent() {
                       initial={{ opacity: 0, y: 20, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                      className="absolute bottom-full left-0 mb-4 bg-[#1A222C] border border-white/10 rounded-2xl p-2 shadow-2xl min-w-[180px] z-50 overflow-hidden"
+                      className="absolute bottom-full left-0 mb-4 bg-card border border-border rounded-2xl p-2 shadow-2xl min-w-[180px] z-50 overflow-hidden"
                     >
                       <button 
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all"
                       >
                         <ImageIcon size={16} className="text-[#B8924A]" /> Galeria
                       </button>
                       <button 
                          onClick={openCamera}
-                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all"
                        >
                          <Camera size={16} className="text-[#B8924A]" /> Câmera
                        </button>
-                      <div className="h-px bg-white/5 my-1" />
+                      <div className="h-px bg-border/10 my-1" />
                       <button 
                         onClick={handleSendLocation}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-all"
                       >
                         <MapPin size={16} className="text-[#B8924A]" /> Localização
                       </button>
@@ -1132,7 +1198,7 @@ function ChatContent() {
                 top: Math.min(contextMenu.y, typeof window !== 'undefined' ? window.innerHeight - 120 : contextMenu.y), 
                 left: Math.min(contextMenu.x, typeof window !== 'undefined' ? window.innerWidth - 160 : contextMenu.x) 
               }}
-              className="absolute bg-[#1A222C]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-w-[150px] overflow-hidden"
+              className="absolute bg-card/95 backdrop-blur-xl border border-border rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-w-[150px] overflow-hidden"
               onClick={e => e.stopPropagation()}
             >
               <button 
@@ -1255,7 +1321,7 @@ function ChatContent() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 280 }}
-            className="fixed inset-0 z-[300] bg-[#0D1117] overflow-y-auto"
+            className="fixed inset-0 z-[300] bg-background overflow-y-auto"
           >
             {/* Hero */}
             <div className="relative h-52 bg-gradient-to-br from-[#B8924A]/25 via-[#B8924A]/8 to-transparent overflow-hidden shrink-0">
@@ -1263,7 +1329,7 @@ function ChatContent() {
               <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(184,146,74,0.12) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
               <button
                 onClick={() => setShowProfile(false)}
-                className="absolute top-5 left-5 flex items-center gap-2 px-4 py-2.5 bg-black/30 backdrop-blur-md border border-white/10 rounded-xl text-white/70 hover:text-white hover:bg-black/50 transition-all text-[10px] font-black uppercase tracking-widest"
+                className="absolute top-5 left-5 flex items-center gap-2 px-4 py-2.5 bg-black/30 backdrop-blur-md border border-border/20 rounded-xl text-white/70 hover:text-white hover:bg-black/50 transition-all text-[10px] font-black uppercase tracking-widest"
               >
                 <ArrowLeft size={14} /> Voltar
               </button>
@@ -1274,7 +1340,7 @@ function ChatContent() {
 
               {/* Avatar + actions row */}
               <div className="flex items-end justify-between mb-5">
-                <div className="w-24 h-24 rounded-2xl bg-[#B8924A]/15 border-2 border-[#B8924A]/40 overflow-hidden flex items-center justify-center font-black text-4xl text-[#B8924A] shadow-2xl shadow-black/60 ring-4 ring-[#0D1117]">
+                <div className="w-24 h-24 rounded-2xl bg-[#B8924A]/15 border-2 border-[#B8924A]/40 overflow-hidden flex items-center justify-center font-black text-4xl text-[#B8924A] shadow-2xl shadow-black/60 ring-4 ring-background">
                   {otherPerson.avatar_url
                     ? <img src={otherPerson.avatar_url} alt={otherPerson.full_name} className="w-full h-full object-cover" />
                     : otherPerson.full_name?.charAt(0)
@@ -1308,7 +1374,7 @@ function ChatContent() {
               </div>
 
               {/* Name + status */}
-              <h1 className="text-2xl font-black text-white mb-1">{otherPerson.full_name}</h1>
+              <h1 className="text-2xl font-black text-foreground mb-1">{otherPerson.full_name}</h1>
               <div className="flex items-center gap-3 mb-1">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -1321,8 +1387,8 @@ function ChatContent() {
                 )}
               </div>
               {profileDetails?.city && (
-                <p className="text-[11px] font-semibold text-white/30 mb-6 flex items-center gap-1.5">
-                  <MapPin size={11} className="text-white/20" />
+                <p className="text-[11px] font-semibold text-foreground/30 mb-6 flex items-center gap-1.5">
+                  <MapPin size={11} className="text-foreground/20" />
                   {profileDetails.city}{profileDetails.state ? `, ${profileDetails.state}` : ''}
                 </p>
               )}
@@ -1335,9 +1401,9 @@ function ChatContent() {
                   { val: String(otherPerson.rating_count || '0'), lbl: 'Trabalhos' },
                   { val: profileDetails?.provider_profiles?.service_radius_km ? `${profileDetails.provider_profiles.service_radius_km} km` : '—', lbl: 'Raio de Atendimento' },
                 ].map(({ val, lbl }) => (
-                  <div key={lbl} className="bg-white/[0.03] border border-white/[0.07] rounded-2xl py-4 flex flex-col items-center gap-1">
-                    <span className="text-xl font-black text-white">{val}</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30 text-center">{lbl}</span>
+                  <div key={lbl} className="bg-muted/30 border border-border rounded-2xl py-4 flex flex-col items-center gap-1">
+                    <span className="text-xl font-black text-foreground">{val}</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center">{lbl}</span>
                   </div>
                 ))}
               </div>
@@ -1351,8 +1417,8 @@ function ChatContent() {
                   {/* About */}
                   <div className="mb-6">
                     <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Sobre</p>
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
-                      <p className={`text-sm leading-relaxed ${profileDetails?.bio ? 'font-semibold text-white/70' : 'font-semibold text-white/25 italic'}`}>
+                    <div className="bg-muted/30 border border-border/20 rounded-2xl p-5">
+                      <p className={`text-sm leading-relaxed ${profileDetails?.bio ? 'font-semibold text-foreground/70' : 'font-semibold text-foreground/25 italic'}`}>
                         {profileDetails?.bio || 'Nenhuma descrição adicionada ainda.'}
                       </p>
                     </div>
@@ -1370,12 +1436,12 @@ function ChatContent() {
                     return (
                       <div className="mb-6">
                         <p className="text-[9px] font-black uppercase tracking-[0.25em] text-[#B8924A]/70 mb-3">Informações de Contato</p>
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-white/[0.05]">
+                        <div className="bg-muted/30 border border-border rounded-2xl overflow-hidden divide-y divide-border">
                           {rows.map(({ icon, lbl, val }) => (
                             <div key={lbl} className="flex items-center gap-4 px-5 py-4">
                               <span className="text-[#B8924A]/50 shrink-0">{icon}</span>
-                              <span className="text-[10px] font-black uppercase tracking-widest text-white/30 w-28 shrink-0">{lbl}</span>
-                              <span className="text-sm font-semibold text-white/70">{val}</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground w-28 shrink-0">{lbl}</span>
+                              <span className="text-sm font-semibold text-foreground/70">{val}</span>
                             </div>
                           ))}
                         </div>
@@ -1403,7 +1469,7 @@ function ChatContent() {
                     {profileDetails?.provider_profiles?.portfolio_urls?.length > 0 ? (
                       <div className="grid grid-cols-3 gap-2">
                         {profileDetails.provider_profiles.portfolio_urls.map((url: string, i: number) => (
-                          <div key={i} className="aspect-square rounded-2xl overflow-hidden border border-white/[0.06]">
+                          <div key={i} className="aspect-square rounded-2xl overflow-hidden border border-border">
                             <img src={url} alt={`Portfólio ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                           </div>
                         ))}
@@ -1411,21 +1477,21 @@ function ChatContent() {
                     ) : (
                       <div className="grid grid-cols-3 gap-2">
                         {[1,2,3].map(i => (
-                          <div key={i} className="aspect-square rounded-2xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center text-white/10">
+                          <div key={i} className="aspect-square rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground">
                             <ImageIcon size={20} />
                           </div>
                         ))}
                       </div>
                     )}
                     {!profileDetails?.provider_profiles?.portfolio_urls?.length && (
-                      <p className="text-center text-[9px] font-black uppercase tracking-widest text-white/15 mt-3">Nenhum item no portfólio</p>
+                      <p className="text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 mt-3">Nenhum item no portfólio</p>
                     )}
                   </div>
 
                   {/* Safety tip */}
                   <div className="flex gap-3 items-start bg-[#B8924A]/5 border border-dashed border-[#B8924A]/15 rounded-2xl p-4">
                     <Shield size={15} className="text-[#B8924A]/50 mt-0.5 shrink-0" />
-                    <p className="text-[10px] font-semibold text-white/25 leading-relaxed">
+                    <p className="text-[10px] font-semibold text-foreground/40 leading-relaxed">
                       Nunca realize pagamentos fora da plataforma. A Working garante proteção total para clientes e prestadores.
                     </p>
                   </div>
@@ -1443,12 +1509,12 @@ function ChatContent() {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-[#141B25] text-white px-8 py-5 rounded-3xl shadow-2xl flex items-center gap-4 border border-[#B8924A]/30 min-w-[320px]"
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-card text-foreground px-8 py-5 rounded-3xl shadow-2xl flex items-center gap-4 border border-[#B8924A]/30 min-w-[320px]"
           >
-            <div className="w-8 h-8 rounded-full bg-[#B8924A] flex items-center justify-center text-[#141B25]">
-              <CheckCheck size={16} />
+            <div className="w-10 h-10 bg-[#B8924A]/10 rounded-full flex items-center justify-center text-[#B8924A] shrink-0">
+              <Zap size={20} />
             </div>
-            <p className="font-black text-xs uppercase tracking-widest">{toast.msg}</p>
+            <p className="text-xs font-black uppercase tracking-widest opacity-80">{toast.msg}</p>
           </motion.div>
         )}
       </AnimatePresence>

@@ -54,7 +54,17 @@ export default function RequestsPage() {
     fetchRequests();
   }, []);
 
-  const filtered = requests.filter(r => {
+  // Pre-process requests to dynamically determine status based on proposals
+  const processedRequests = requests.map(r => {
+    const proposalCount = r.proposals?.[0]?.count || 0;
+    // If it's open but has proposals, it's effectively "in_progress" (negotiating)
+    if (r.status === 'open' && proposalCount > 0) {
+      return { ...r, status: 'in_progress' };
+    }
+    return r;
+  });
+
+  const filtered = processedRequests.filter(r => {
     const matchFilter = activeFilter === 'Todos' || r.status === activeFilter;
     const matchSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
                         r.category.toLowerCase().includes(search.toLowerCase());
@@ -62,10 +72,10 @@ export default function RequestsPage() {
   });
 
   const counts = {
-    Todos:          requests.length,
-    open:           requests.filter(r => r.status === 'open').length,
-    in_progress:    requests.filter(r => r.status === 'in_progress').length,
-    completed:      requests.filter(r => r.status === 'completed').length,
+    Todos:          processedRequests.length,
+    open:           processedRequests.filter(r => r.status === 'open').length,
+    in_progress:    processedRequests.filter(r => r.status === 'in_progress').length,
+    completed:      processedRequests.filter(r => r.status === 'completed').length,
   };
 
   return (
@@ -168,47 +178,46 @@ export default function RequestsPage() {
                     transition={{ delay: i * 0.05 }}
                     className="group flex flex-col lg:flex-row lg:items-center rounded-[24px] border border-border bg-card overflow-hidden hover:border-[#B8924A]/25 hover:bg-[#B8924A]/[0.02] transition-all duration-300"
                   >
-                    <div className="flex-1 p-7 lg:p-8">
-                      <div className="flex items-start justify-between mb-5">
-                        <div className="space-y-3">
-                          <div className="flex flex-col items-start gap-2 mb-1">
-                            <span className={cn(
-                              'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider',
-                              cfg.variant === 'gold'    ? 'bg-[#B8924A]/10 text-[#B8924A] border-[#B8924A]/20' :
-                              cfg.variant === 'success' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                          'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                            )}>
-                              <span className={cn('w-1.5 h-1.5 rounded-full', cfg.dot)} />
-                              {cfg.label}
-                            </span>
-                            <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.15em]">{timeAgo}</span>
-                          </div>
-                          <h4 className="text-xl font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors">
-                            {req.title}
-                          </h4>
+                    <div className="flex-1 p-4 lg:p-5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            'inline-flex items-center rounded border px-2 py-0.5 text-[8px] font-black uppercase tracking-wider',
+                            cfg.variant === 'gold'    ? 'bg-[#B8924A]/10 text-[#B8924A] border-[#B8924A]/20' :
+                            cfg.variant === 'success' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                        'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          )}>
+                            {cfg.label}
+                          </span>
+                          <span className="text-[8px] font-black text-muted-foreground/70 uppercase tracking-widest leading-none">
+                            {timeAgo}
+                          </span>
                         </div>
-                      </div>
+                        
+                        <h4 className="text-base font-black tracking-tight text-foreground group-hover:text-[#B8924A] transition-colors leading-tight truncate">
+                          {req.title}
+                        </h4>
 
-                      <div className="flex flex-wrap gap-3 text-[11px] font-black">
-                        <div className="flex items-center gap-2 bg-muted border border-border px-3.5 py-2 rounded-xl text-muted-foreground uppercase tracking-widest">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B8924A]" />
-                          {req.category}
-                        </div>
-                        <div className="flex items-center gap-2 bg-muted border border-border px-3.5 py-2 rounded-xl text-[#B8924A] uppercase tracking-widest">
-                          <Users size={12} strokeWidth={2.5} />
-                          {proposalCount} {proposalCount === 1 ? 'Proposta' : 'Propostas'}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] font-black text-muted-foreground/50 uppercase tracking-widest pt-0.5">
+                          <span className="flex items-center rounded-sm">
+                            {req.category}
+                          </span>
+                          <span className="flex items-center gap-1.5 rounded-sm">
+                            <Users size={10} strokeWidth={2.5} className="text-[#B8924A]" />
+                            {proposalCount} {proposalCount === 1 ? 'Proposta' : 'Propostas'}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="px-7 py-5 lg:p-8 border-t lg:border-t-0 lg:border-l border-border flex items-center justify-between lg:justify-center lg:min-w-[200px]">
+                    <div className="px-4 py-2.5 lg:px-6 border-t lg:border-t-0 lg:border-l border-border flex items-center justify-end lg:min-w-[160px] bg-muted/5 lg:bg-transparent">
                       <Button
                         href={`/dashboard/client/request/${req.id}`}
                         variant="glow"
-                        className="font-black py-2 px-6 rounded-2xl flex items-center gap-2 group/btn"
+                        className="font-black h-9 px-4 rounded-md flex items-center gap-2 group/btn text-[10px] uppercase tracking-widest"
                       >
-                        Ver detalhes
-                        <ArrowRight size={16} strokeWidth={2.5} className="group-hover/btn:translate-x-1 transition-transform" />
+                        Detalhes
+                        <ArrowRight size={14} strokeWidth={2.5} className="group-hover/btn:translate-x-1 transition-transform" />
                       </Button>
                     </div>
                   </motion.div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { 
   User, 
   Settings, 
-  Bell, 
+  BellRing, 
   Shield, 
   CreditCard, 
   LogOut, 
@@ -21,7 +21,10 @@ import {
   Trash2,
   MoreVertical,
   Edit2,
-  X
+  X,
+  MapPin,
+  Globe,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
@@ -48,7 +51,10 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editCep, setEditCep] = useState('');
+  const [editAddress, setEditAddress] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -109,6 +115,8 @@ export default function ProfilePage() {
       
       setEditName(profile?.full_name || user.user_metadata?.full_name || '');
       setEditPhone(profile?.phone || '');
+      setEditCep(profile?.cep || '');
+      setEditAddress(profile?.address || '');
       setLoading(false);
     };
 
@@ -120,11 +128,31 @@ export default function ProfilePage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    let latitude = null;
+    let longitude = null;
+
+    if (editAddress) {
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(editAddress)}`);
+        const geoData = await geoRes.json();
+        if (geoData && geoData.length > 0) {
+          latitude = parseFloat(geoData[0].lat);
+          longitude = parseFloat(geoData[0].lon);
+        }
+      } catch (err) {
+        console.error('Geocoding error:', err);
+      }
+    }
+
     const { error } = await supabase
       .from('profiles')
       .update({
         full_name: editName,
-        phone: editPhone
+        phone: editPhone,
+        cep: editCep,
+        address: editAddress,
+        latitude,
+        longitude
       })
       .eq('id', session.user.id);
 
@@ -240,341 +268,347 @@ export default function ProfilePage() {
       title: 'Segurança e Preferências',
       items: [
         { icon: <Shield size={18} />, title: 'Segurança', desc: 'Alterar senha e autenticação 2FA', target: '/dashboard/settings?tab=security' },
-        { icon: <Bell size={18} />, title: 'Notificações', desc: 'Configurar alertas de novos leads e chat', target: '/dashboard/settings?tab=notifications' },
+        { icon: <BellRing size={18} />, title: 'Notificações', desc: 'Configurar alertas de novos leads e chat', target: '/dashboard/settings?tab=notifications' },
       ]
     }
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-20">
-      {/* Delete Confirmation Modal */}
+    <div className="max-w-xl lg:max-w-6xl mx-auto min-h-screen pb-24 px-4 md:px-8 pt-4 lg:pt-8">
+      {/* Delete Confirmation Modal (Both Mobile and Desktop) */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowDeleteConfirm(false)}
               className="absolute inset-0 bg-black/80 backdrop-blur-md"
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-card border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl space-y-8"
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-card border border-border w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-6"
             >
-              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center text-red-500 mx-auto">
-                <Trash2 size={32} />
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center text-red-500 mx-auto">
+                <Trash2 size={28} />
               </div>
-              
               <div className="space-y-2 text-center">
-                <h3 className="text-2xl font-black tracking-tight text-foreground">Remover Foto?</h3>
-                <p className="text-muted-foreground font-bold leading-relaxed">
-                  Tem certeza que deseja remover sua foto de perfil? Esta ação não pode ser desfeita.
-                </p>
+                <h3 className="text-xl font-bold text-foreground">Remover Foto?</h3>
+                <p className="text-muted-foreground text-sm">Tem certeza que deseja remover sua foto de perfil? Esta ação não pode ser desfeita.</p>
               </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  variant="outline" 
-                  fullWidth 
-                  onClick={() => setShowDeleteConfirm(false)} 
-                  className="rounded-2xl h-14 font-black order-2 sm:order-1"
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  fullWidth 
-                  onClick={handleRemoveAvatar} 
-                  className="bg-red-500 hover:bg-red-600 text-white rounded-2xl h-14 font-black shadow-sm order-1 sm:order-2"
-                >
-                  Sim, Remover
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button variant="outline" fullWidth onClick={() => setShowDeleteConfirm(false)} className="rounded-xl h-12 font-bold order-2 sm:order-1 bg-transparent border-border text-foreground hover:bg-muted">Cancelar</Button>
+                <Button fullWidth onClick={handleRemoveAvatar} className="bg-red-500 hover:bg-red-600 text-white rounded-xl h-12 font-bold shadow-sm order-1 sm:order-2">Sim, Remover</Button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Edit Profile Modal */}
+      {/* Edit Profile Modal (Mobile Only) */}
       <AnimatePresence>
         {isEditing && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center sm:p-6 lg:hidden">
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setIsEditing(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-card border border-white/10 w-[calc(100%-1rem)] max-w-2xl rounded-[2rem] md:rounded-[3rem] px-5 py-8 md:p-10 shadow-2xl"
+              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative bg-card border border-border w-full max-w-lg rounded-t-3xl p-6 shadow-2xl pb-safe"
             >
-              <div className="space-y-8">
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-black tracking-tight text-foreground">Editar Perfil</h3>
-                  <p className="text-muted-foreground font-bold">Atualize seus dados básicos.</p>
+              <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-6" />
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold text-foreground">Editar Perfil</h3>
+                  <p className="text-muted-foreground text-sm">Atualize seus dados básicos.</p>
                 </div>
                 
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Nome Completo</label>
-                    <input 
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="w-full bg-muted border-none h-14 rounded-2xl font-bold px-6 focus:ring-2 focus:ring-[#B8924A] transition-all"
-                    />
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground px-1">Nome Completo</label>
+                    <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">WhatsApp / Telefone</label>
-                    <input 
-                      value={editPhone}
-                      onChange={(e) => setEditPhone(e.target.value)}
-                      className="w-full bg-muted border-none h-14 rounded-2xl font-bold px-6 focus:ring-2 focus:ring-[#B8924A] transition-all"
-                      placeholder="(00) 00000-0000"
-                    />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground px-1">Telefone</label>
+                    <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="(00) 00000-0000" />
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="space-y-1.5 w-1/3">
+                      <label className="text-xs font-bold text-muted-foreground px-1">CEP</label>
+                      <div className="relative">
+                        <input 
+                          value={editCep}
+                          onChange={async (e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                            setEditCep(val.replace(/^(\d{5})(\d)/, '$1-$2'));
+                            if (val.length === 8) {
+                              setIsFetchingCep(true);
+                              try {
+                                const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
+                                const data = await res.json();
+                                if (!data.erro) setEditAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
+                              } catch (err) {} finally { setIsFetchingCep(false); }
+                            }
+                          }}
+                          className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none"
+                          placeholder="00000-000"
+                        />
+                        {isFetchingCep && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-3 h-3 border-2 border-[#B8924A] border-t-transparent rounded-full animate-spin" /></div>}
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <label className="text-xs font-bold text-muted-foreground px-1">Endereço</label>
+                      <input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Rua, Número..." />
+                    </div>
                   </div>
                 </div>
-
-                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                   <Button variant="outline" fullWidth onClick={() => setIsEditing(false)} className="rounded-2xl h-14 font-black order-2 sm:order-1">
-                     Cancelar
-                   </Button>
-                   <Button fullWidth onClick={handleSaveProfile} disabled={saving} className="bg-neutral-900 text-white rounded-2xl h-14 font-black border border-white/10 shadow-sm order-1 sm:order-2">
-                     {saving ? 'Salvando...' : 'Salvar Alterações'}
-                   </Button>
-                 </div>
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" fullWidth onClick={() => setIsEditing(false)} className="rounded-xl h-12 font-bold bg-transparent border-border text-foreground hover:bg-muted">Cancelar</Button>
+                  <Button fullWidth onClick={handleSaveProfile} disabled={saving} className="bg-[#B8924A] hover:bg-[#a3803f] text-white rounded-xl h-12 font-bold shadow-sm">{saving ? 'Salvando...' : 'Salvar'}</Button>
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-[#141B25] rounded-[3rem] p-8 md:p-12 text-white">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#B8924A]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+      {/* Top Header - Hidden as it is now in the global layout header */}
+      <header className="flex items-center justify-between mb-8 lg:mb-12 opacity-0 pointer-events-none h-0">
+        <h1 className="text-2xl lg:text-3xl font-bold text-white">Perfil</h1>
+        <Link href="/dashboard/settings?tab=notifications" className="w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors relative">
+          <BellRing size={20} className="text-white" />
+          <span className="absolute top-2.5 right-2.5 lg:top-3.5 lg:right-3.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#07090E]" />
+        </Link>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
         
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-          <div className="relative group">
-            <div className="w-40 h-40 rounded-[2.5rem] bg-white/10 backdrop-blur-md border-2 border-white/20 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-[1.02]">
-              {userData.avatar ? (
-                <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User size={64} className="text-white/40" />
-              )}
-              {uploading && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-            <div className="absolute -bottom-2 -right-2">
-              <button 
-                onClick={() => setShowPhotoOptions(!showPhotoOptions)}
-                className="w-12 h-12 bg-white text-[#141B25] rounded-2xl flex items-center justify-center shadow-xl hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                {showPhotoOptions ? <X size={20} /> : <Camera size={20} />}
-              </button>
-
-              <AnimatePresence>
-                {showPhotoOptions && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setShowPhotoOptions(false)} 
-                    />
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                      className="absolute bottom-full right-0 mb-3 bg-card border border-white/10 rounded-2xl overflow-hidden shadow-2xl min-w-[160px] z-20"
-                    >
-                    <div className="flex flex-col p-2">
-                      <label className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
-                        <Camera size={18} className="text-white/60 group-hover:text-white" />
-                        <span className="text-sm font-bold">Alterar Foto</span>
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                          handleAvatarUpload(e);
-                          setShowPhotoOptions(false);
-                        }} disabled={uploading} />
-                      </label>
-                      
-                      {userData.avatar && (
-                        <button 
-                          onClick={() => {
-                            setShowPhotoOptions(false);
-                            setShowDeleteConfirm(true);
-                          }}
-                          disabled={uploading}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-red-500/10 rounded-xl cursor-pointer transition-colors group text-red-400"
-                        >
-                          <Trash2 size={18} className="group-hover:text-red-300" />
-                          <span className="text-sm font-bold">Remover Foto</span>
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                </>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          <div className="flex-1 text-center md:text-left space-y-6">
-            <div className="space-y-2">
-              <div className="flex flex-col md:flex-row md:items-center gap-4">
-                <h1 className="text-3xl md:text-4xl font-black tracking-tighter">{userData.name}</h1>
-              </div>
-              <p className="text-white/40 font-black text-xs uppercase tracking-widest italic">
-                Membro desde {userData.createdAt ? format(new Date(userData.createdAt), "MMMM 'de' yyyy", { locale: ptBR }) : '...'}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl">
-                 <Star size={14} className={cn("text-amber-400 fill-amber-400", userData.stats.ratingCount === 0 && "opacity-20")} />
-                 <span className="font-black text-sm">
-                   {userData.stats.ratingCount > 0 ? (
-                     <>
-                       {Number(userData.stats.rating).toFixed(1)} 
-                       <span className="text-white/30 font-bold ml-1">
-                         ({userData.stats.ratingCount} {userData.stats.ratingCount === 1 ? 'avaliação' : 'avaliações'})
-                       </span>
-                     </>
-                   ) : (
-                     <span className="text-white/30 font-bold">Nenhuma avaliação</span>
-                   )}
-                 </span>
-              </div>
-            </div>
-          </div>
-
-          <Button 
+        {/* LEFT COLUMN: Mobile Profile Info + Menus */}
+        <div className="lg:col-span-4 space-y-8">
+          
+          {/* Mobile Only Profile Info */}
+          <div 
             onClick={() => {
               setEditName(userData.name);
               setIsEditing(true);
             }}
-            className="h-16 px-10 rounded-2xl bg-neutral-900 text-white border border-white/10 font-black text-xs uppercase tracking-[0.2em] hover:bg-black transition-all shadow-sm"
+            className="flex items-center gap-4 cursor-pointer group lg:hidden"
           >
-            Editar Perfil
-          </Button>
-        </div>
-      </section>
+            <div className="relative shrink-0">
+              <div className="w-[72px] h-[72px] rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden">
+                {userData.avatar ? <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" /> : <User size={32} className="text-muted-foreground/40" />}
+                {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
+              </div>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setShowPhotoOptions(!showPhotoOptions); }}
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              >
+                <Camera size={14} />
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col justify-center overflow-hidden">
+              <h2 className="text-xl font-bold text-foreground truncate">{userData.name}</h2>
+              <p className="text-sm text-muted-foreground truncate">{isProvider ? 'Prestador' : 'Cliente'} • {userData.createdAt ? format(new Date(userData.createdAt), "MMM yyyy", { locale: ptBR }) : ''}</p>
+            </div>
+            <ChevronRight size={20} className="text-muted-foreground/20 shrink-0" />
+          </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statCards.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Card className="p-8 bg-card border border-border hover:border-[#B8924A]/20 hover:shadow-[0_0_32px_rgba(184,146,74,0.06)] transition-all group overflow-hidden relative">
-              <div className={cn("absolute top-0 right-0 w-28 h-28 rounded-full blur-3xl opacity-20", stat.bg)} />
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border border-border", stat.bg, stat.color)}>
-                  {stat.icon}
+          {/* Stats Cards - Vertical Stack */}
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-1 lg:gap-4">
+              {statCards.map((stat, i) => (
+                <div 
+                  key={i} 
+                  className="bg-card border border-border rounded-3xl p-5 hover:border-[#B8924A]/30 transition-all shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105", stat.bg, stat.color)}>
+                        {stat.icon}
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-tight max-w-[80px]">
+                        {stat.label}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-2xl font-black text-foreground leading-none">
+                          {stat.value}
+                        </span>
+                        {stat.label.includes('Avaliação') && (
+                          <Star size={14} className="fill-amber-400 text-amber-400" />
+                        )}
+                      </div>
+                      {stat.label.includes('Avaliação') && (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 mt-1">
+                          de 5.0
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <TrendingUp size={16} className="text-green-400 opacity-60" />
-              </div>
-              <div className="relative z-10 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                <h3 className="text-3xl font-black text-foreground">{stat.value}</h3>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+              ))}
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-        {/* Settings Groups */}
-        <div className="xl:col-span-8 space-y-10">
-          {settingGroups.map((group, idx) => (
-            <section key={group.title} className="space-y-6">
-              <div className="flex items-center gap-4 px-4">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">{group.title}</h3>
-                <div className="h-px flex-1 bg-border" />
+          {/* Hero Banner (Conversas) */}
+          <Link href="/dashboard/chat" className="block bg-gradient-to-br from-[#B8924A] to-[#d4af71] rounded-[24px] p-6 shadow-xl hover:scale-[1.02] transition-transform">
+            <div className="flex flex-col gap-4">
+              <div className="w-12 h-12 bg-black/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <MessageSquare size={24} className="text-[#07090E]" />
               </div>
-              
-              <div className="space-y-3">
-                {group.items.map((item, i) => {
-                  const content = (
-                    <>
-                      <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:bg-[#B8924A]/10 group-hover:border-[#B8924A]/20 group-hover:text-[#B8924A] transition-colors">
-                        {item.icon}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <h4 className="text-lg font-black text-foreground/80 group-hover:text-foreground transition-colors tracking-tight">{item.title}</h4>
-                        <p className="text-sm font-bold text-muted-foreground italic">"{item.desc}"</p>
-                      </div>
-                      <ChevronRight size={20} className="text-muted-foreground/40 group-hover:text-[#B8924A] group-hover:translate-x-1 transition-all" />
-                    </>
-                  );
-
-                  const commonStyles = "w-full text-left group flex items-center gap-6 p-6 rounded-[2rem] bg-card border border-border hover:border-[#B8924A]/30 hover:bg-[#B8924A]/[0.04] transition-all outline-none";
-
-                  if ('target' in item) {
-                    return (
-                      <Link key={item.title} href={item.target} className={commonStyles}>
-                        {content}
-                      </Link>
-                    );
-                  }
-
-                  return (
-                    <button key={item.title} onClick={(item as any).onClick} className={commonStyles}>
-                      {content}
-                    </button>
-                  );
-                })}
+              <div>
+                <h3 className="font-bold text-[#07090E] text-xl mb-1">Conversas</h3>
+                <p className="text-sm text-[#07090E]/80 font-medium leading-snug">Acesse seus chats e pedidos em andamento</p>
               </div>
-            </section>
-          ))}
+            </div>
+          </Link>
+
+              <div className="space-y-6">
+            <div>
+              <div className="bg-card lg:bg-transparent rounded-2xl border border-border lg:border-none overflow-hidden space-y-1">
+                <button onClick={() => { if(window.innerWidth < 1024) { setEditName(userData.name); setIsEditing(true); } }} className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-muted lg:rounded-xl transition-colors border-b border-border lg:border-none group">
+                  <div className="flex items-center gap-4">
+                    <User size={20} className="text-muted-foreground group-hover:text-[#B8924A] transition-colors" />
+                    <span className="font-bold text-foreground group-hover:text-[#B8924A] transition-colors">Informações da Conta</span>
+                  </div>
+                  <ChevronRight size={18} className="text-muted-foreground/20 lg:hidden" />
+                </button>
+                <Link href="/dashboard/settings?tab=security" className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-muted lg:rounded-xl transition-colors border-b border-border lg:border-none group">
+                  <div className="flex items-center gap-4">
+                    <Shield size={20} className="text-muted-foreground group-hover:text-[#B8924A] transition-colors" />
+                    <span className="font-bold text-foreground group-hover:text-[#B8924A] transition-colors">Segurança e Senha</span>
+                  </div>
+                  <ChevronRight size={18} className="text-muted-foreground/20 lg:hidden" />
+                </Link>
+                {isProvider ? (
+                  <div className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-muted lg:rounded-xl transition-colors group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <Star size={20} className="text-amber-400" />
+                      <span className="font-bold text-foreground group-hover:text-amber-400 transition-colors">Minhas Avaliações</span>
+                    </div>
+                    <ChevronRight size={18} className="text-muted-foreground/20 lg:hidden" />
+                  </div>
+                ) : (
+                  <Link href="/dashboard/client/requests" className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-muted lg:rounded-xl transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <Clock size={20} className="text-muted-foreground group-hover:text-[#B8924A] transition-colors" />
+                      <span className="font-bold text-foreground group-hover:text-[#B8924A] transition-colors">Histórico de Pedidos</span>
+                    </div>
+                    <ChevronRight size={18} className="text-muted-foreground/20 lg:hidden" />
+                  </Link>
+                )}
+              </div>
+            </div>
+ 
+            <div>
+              <div className="bg-card lg:bg-transparent rounded-2xl border border-border lg:border-none overflow-hidden space-y-1">
+                <button className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-muted lg:rounded-xl transition-colors border-b border-border lg:border-none group">
+                  <div className="flex items-center gap-4">
+                    <HelpCircle size={20} className="text-muted-foreground group-hover:text-[#B8924A] transition-colors" />
+                    <span className="font-bold text-foreground group-hover:text-[#B8924A] transition-colors">Central de Ajuda</span>
+                  </div>
+                  <ChevronRight size={18} className="text-muted-foreground/20 lg:hidden" />
+                </button>
+                <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 lg:p-3 lg:hover:bg-red-500/10 lg:rounded-xl transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <LogOut size={20} className="text-red-400" />
+                    <span className="font-bold text-red-400">Sair da conta</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Sidebar Actions */}
-        <aside className="xl:col-span-4 space-y-8">
-          <Card className="p-10 bg-card border border-border rounded-[2.5rem] space-y-8">
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-muted border border-border rounded-3xl flex items-center justify-center text-muted-foreground">
-                <HelpCircle size={32} />
+        {/* RIGHT COLUMN: Desktop Inline Edit Form */}
+        <div className="hidden lg:block lg:col-span-8">
+          <div className="bg-card rounded-[32px] p-10 border border-border shadow-2xl">
+            <h2 className="text-2xl font-bold text-foreground mb-10">Informações Pessoais</h2>
+            
+            {/* Desktop Avatar Header */}
+            <div className="flex items-center gap-8 mb-10 pb-8 border-b border-border">
+              <div className="relative shrink-0">
+                <div className="w-[100px] h-[100px] rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden">
+                  {userData.avatar ? <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" /> : <User size={40} className="text-muted-foreground/40" />}
+                  {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
+                </div>
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-foreground">Central de Ajuda</h3>
-                <p className="text-sm font-bold text-muted-foreground leading-relaxed">Dúvidas sobre como usar a plataforma ou conseguir mais leads?</p>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-foreground mb-4">{userData.name}</h3>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center justify-center h-10 px-6 bg-[#B8924A] hover:bg-[#a3803f] text-white font-bold text-sm rounded-xl cursor-pointer transition-colors">
+                    <span>Nova Foto</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
+                  </label>
+                  {userData.avatar && (
+                    <button onClick={() => setShowDeleteConfirm(true)} disabled={uploading} className="h-10 px-6 bg-transparent border border-border hover:bg-muted text-foreground font-bold text-sm rounded-xl transition-colors">
+                      Remover
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <Button variant="outline" fullWidth className="h-14 px-8 font-black text-xs uppercase rounded-2xl">
-                Acessar FAQ
-              </Button>
-              <Button variant="outline" fullWidth className="h-14 px-8 font-black text-xs uppercase rounded-2xl flex items-center justify-center gap-2">
-                Falar com Suporte <ExternalLink size={14} />
-              </Button>
+ 
+            {/* Desktop Form Fields */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Nome Completo</label>
+                  <div className="relative">
+                    <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                    <Edit2 size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground/20" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Telefone</label>
+                  <div className="relative">
+                    <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="(00) 00000-0000" />
+                    <Edit2 size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground/20" />
+                  </div>
+                </div>
+              </div>
+ 
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">CEP</label>
+                  <input 
+                    value={editCep}
+                    onChange={async (e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setEditCep(val.replace(/^(\d{5})(\d)/, '$1-$2'));
+                      if (val.length === 8) {
+                        setIsFetchingCep(true);
+                        try {
+                          const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
+                          const data = await res.json();
+                          if (!data.erro) setEditAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
+                        } catch (err) {} finally { setIsFetchingCep(false); }
+                      }
+                    }}
+                    className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none"
+                    placeholder="00000-000"
+                  />
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Endereço Completo</label>
+                  <input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Rua, Número..." />
+                </div>
+              </div>
+ 
+              <div className="pt-6">
+                <Button fullWidth onClick={handleSaveProfile} disabled={saving} className="bg-[#B8924A] hover:bg-[#a3803f] text-white rounded-xl h-14 text-base font-bold shadow-sm">
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </div>
             </div>
-          </Card>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 p-6 rounded-3xl bg-red-500/10 border border-red-500/15 text-red-400 font-black text-xs uppercase tracking-widest hover:bg-red-500/[0.15] hover:border-red-500/25 transition-all group"
-          >
-            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
-            Encerrar Sessão
-          </button>
-        </aside>
+          </div>
+        </div>
       </div>
 
-      <Notification
-        {...notif}
-        onClose={() => setNotif(p => ({ ...p, show: false }))}
-      />
+      <Notification {...notif} onClose={() => setNotif(p => ({ ...p, show: false }))} />
     </div>
   );
 }

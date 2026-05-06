@@ -4,6 +4,7 @@ import { Compass, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { ProviderStats } from './components/ProviderStats';
 import { LeadsFeed } from './components/LeadsFeed';
+import { ActiveServices } from './components/ActiveServices';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -52,6 +53,11 @@ export default function ProviderDashboard() {
           </p>
         </div>
       </header>
+
+      {/* active services */}
+      <section>
+        <ActiveServices />
+      </section>
 
       {/* stats */}
       <section>
