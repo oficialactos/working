@@ -108,9 +108,9 @@ export default function ProfilePage() {
         name: profile?.full_name || user.user_metadata?.full_name || 'Usuário',
         role: role as 'client' | 'provider',
         avatar: profile?.avatar_url || user.user_metadata?.avatar_url || '',
-        phone: profile?.phone || '',
-        cep: profile?.cep || '',
-        address: profile?.address || '',
+        phone: profile?.phone || user.user_metadata?.phone || '',
+        cep: profile?.cep || user.user_metadata?.cep || '',
+        address: profile?.address || user.user_metadata?.address || '',
         createdAt: user.created_at,
         stats: {
           ...stats,
@@ -120,9 +120,9 @@ export default function ProfilePage() {
       });
       
       setEditName(profile?.full_name || user.user_metadata?.full_name || '');
-      setEditPhone(profile?.phone || '');
-      setEditCep(profile?.cep || '');
-      setEditAddress(profile?.address || '');
+      setEditPhone(profile?.phone || user.user_metadata?.phone || '');
+      setEditCep(profile?.cep || user.user_metadata?.cep || '');
+      setEditAddress(profile?.address || user.user_metadata?.address || '');
       setLoading(false);
     };
 
@@ -160,23 +160,17 @@ export default function ProfilePage() {
       updated_at: new Date().toISOString()
     };
 
-    let { data: updatedRows, error } = await supabase
+    // Usamos upsert para garantir que o registro seja criado ou atualizado em uma única operação,
+    // o que é mais resiliente a erros de RLS e concorrência.
+    const { error: upsertError } = await supabase
       .from('profiles')
-      .update(payload)
-      .eq('id', session.user.id)
-      .select();
+      .upsert({
+        id: session.user.id,
+        role: userData.role || 'client',
+        ...payload
+      });
 
-    // Se o perfil não existir (usuário antigo sem registro na tabela profiles), a gente faz o insert
-    if (!error && (!updatedRows || updatedRows.length === 0)) {
-      const { error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          id: session.user.id,
-          role: userData.role || 'client',
-          ...payload
-        });
-      error = insertError;
-    }
+    error = upsertError;
 
     // Atualiza também nos metadados do Auth para garantir que a sessão reflita as mudanças
     await supabase.auth.updateUser({
@@ -236,8 +230,11 @@ export default function ProfilePage() {
       // 1. Atualiza na tabela profiles (Principal)
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', session.user.id);
+        .upsert({ 
+          id: session.user.id,
+          avatar_url: publicUrl,
+          role: userData.role || 'client'
+        });
 
       if (updateError) throw updateError;
 
@@ -265,8 +262,11 @@ export default function ProfilePage() {
       // 1. Atualiza na tabela profiles
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', session.user.id);
+        .upsert({ 
+          id: session.user.id,
+          avatar_url: null,
+          role: userData.role || 'client'
+        });
 
       if (updateError) throw updateError;
 
@@ -431,27 +431,80 @@ export default function ProfilePage() {
         {/* LEFT COLUMN: Mobile Profile Info + Menus */}
         <div className="lg:col-span-4 space-y-8">
           
+          {/* Photo Options Bottom Sheet (Mobile) */}
+          <AnimatePresence>
+            {showPhotoOptions && (
+              <div className="fixed inset-0 z-[120] flex items-end justify-center lg:hidden">
+                <motion.div 
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  onClick={() => setShowPhotoOptions(false)}
+                  className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                />
+                <motion.div 
+                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="relative bg-card border border-border w-full rounded-t-[2rem] p-6 shadow-2xl pb-safe"
+                >
+                  <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-8" />
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl font-bold text-foreground">Foto de Perfil</h3>
+                      <p className="text-sm text-muted-foreground">Como você deseja gerenciar sua foto?</p>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <label className="flex items-center justify-center gap-3 w-full h-14 bg-[#B8924A] text-white font-bold rounded-2xl cursor-pointer hover:bg-[#a3803f] transition-all">
+                        <Camera size={20} />
+                        Nova Foto
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => { handleAvatarUpload(e); setShowPhotoOptions(false); }} disabled={uploading} />
+                      </label>
+
+                      {userData.avatar && (
+                        <button 
+                          onClick={() => { setShowPhotoOptions(false); setShowDeleteConfirm(true); }}
+                          className="flex items-center justify-center gap-3 w-full h-14 bg-red-500/10 text-red-500 border border-red-500/20 font-bold rounded-2xl hover:bg-red-500/20 transition-all"
+                        >
+                          <Trash2 size={20} />
+                          Remover Foto
+                        </button>
+                      )}
+
+                      <button 
+                        onClick={() => setShowPhotoOptions(false)}
+                        className="w-full h-14 bg-muted text-foreground font-bold rounded-2xl hover:bg-muted/80 transition-all"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Mobile Only Profile Info */}
-          <div 
-            onClick={() => {
-              setEditName(userData.name);
-              setIsEditing(true);
-            }}
-            className="flex items-center gap-4 cursor-pointer group lg:hidden"
-          >
+          <div className="flex items-center gap-4 group lg:hidden">
             <div className="relative shrink-0">
-              <div className="w-[72px] h-[72px] rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden">
+              <div 
+                onClick={() => setShowPhotoOptions(true)}
+                className="w-[72px] h-[72px] rounded-full bg-muted border border-border flex items-center justify-center overflow-hidden cursor-pointer active:scale-95 transition-transform"
+              >
                 {userData.avatar ? <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" /> : <User size={32} className="text-muted-foreground/40" />}
                 {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>}
               </div>
               <button 
-                onClick={(e) => { e.stopPropagation(); setShowPhotoOptions(!showPhotoOptions); }}
-                className="absolute -bottom-1 -right-1 w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+                onClick={() => setShowPhotoOptions(true)}
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-foreground text-background rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform z-10"
               >
                 <Camera size={14} />
               </button>
             </div>
-            <div className="flex-1 flex flex-col justify-center overflow-hidden">
+            <div 
+              onClick={() => {
+                setEditName(userData.name);
+                setIsEditing(true);
+              }}
+              className="flex-1 flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
               <h2 className="text-xl font-bold text-foreground truncate">{userData.name}</h2>
               <p className="text-sm text-muted-foreground truncate">{isProvider ? 'Prestador' : 'Cliente'} • {userData.createdAt ? format(new Date(userData.createdAt), "MMM yyyy", { locale: ptBR }) : ''}</p>
             </div>

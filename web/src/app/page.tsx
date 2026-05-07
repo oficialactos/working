@@ -97,28 +97,28 @@ export default function Home() {
       <nav className={cn(
         'fixed top-0 inset-x-0 z-[100] px-6 transition-all duration-500',
         isScrolled
-          ? 'py-3 bg-background/80 backdrop-blur-xl border-b border-white/[0.05]'
+          ? 'py-3 bg-background/80 backdrop-blur-xl border-b border-foreground/[0.05]'
           : 'py-6 bg-transparent',
       )}>
         <div className="max-w-[1400px] mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center group">
             <span className="text-xl font-black tracking-tighter uppercase leading-none">
-              <span className="text-[#B8924A]">W</span><span className="hidden sm:inline text-white">ORKING</span>
+              <span className="text-[#B8924A]">W</span><span className="hidden sm:inline text-foreground">ORKING</span>
             </span>
           </Link>
 
           <div className="flex items-center gap-4 md:gap-8">
             <div className="hidden md:flex items-center gap-8">
               {['Para você', 'Para trabalhar', 'Empresas'].map((item) => (
-                <Link key={item} href="#" className="text-sm font-bold text-white/40 hover:text-white transition-colors">
+                <Link key={item} href="#" className="text-sm font-bold text-foreground/40 hover:text-foreground transition-colors">
                   {item}
                 </Link>
               ))}
-              <div className="h-4 w-px bg-white/10" />
+              <div className="h-4 w-px bg-foreground/10" />
             </div>
             
             <div className="flex items-center gap-4">
-              <Link href="/auth?mode=login" className="text-sm font-bold text-white/40 hover:text-white transition-colors">
+              <Link href="/auth?mode=login" className="text-sm font-bold text-foreground/40 hover:text-foreground transition-colors">
                 Entrar
               </Link>
               <Button variant="gold" size="sm" href="/auth?mode=register" className="rounded-full px-4 md:px-6">
@@ -155,12 +155,12 @@ export default function Home() {
             </div>
 
             <h1 className="text-6xl lg:text-[5.5rem] font-black leading-[0.9] tracking-tighter">
-              <span className="text-white">A solução que </span><br />
-              <span className="text-white">você precisa, </span><br />
+              <span className="text-foreground">A solução que </span><br />
+              <span className="text-foreground">você precisa, </span><br />
               <span className="text-gradient-gold">no seu tempo.</span>
             </h1>
 
-            <p className="max-w-xl text-lg text-white/45 font-medium leading-relaxed">
+            <p className="max-w-xl text-lg text-foreground/45 font-medium leading-relaxed">
               Conectamos você aos melhores profissionais locais para resolver qualquer
               problema em minutos. Seguro, rápido e transparente.
             </p>
@@ -168,14 +168,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1 max-w-sm group">
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25 group-focus-within:text-[#B8924A] transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/25 group-focus-within:text-[#B8924A] transition-colors"
                   size={18}
                 />
                 <input
                   type="text"
                   placeholder="Qual serviço você precisa?"
                   onKeyDown={(e) => { if (e.key === 'Enter') router.push('/auth?mode=login') }}
-                  className="w-full h-14 glass rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-white/25 focus:outline-none focus:border-[#B8924A]/40 focus:ring-1 focus:ring-[#B8924A]/25 transition-all text-sm font-bold"
+                  className="w-full h-14 glass rounded-2xl py-3 pl-12 pr-4 text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-[#B8924A]/40 focus:ring-1 focus:ring-[#B8924A]/25 transition-all text-sm font-bold"
                 />
               </div>
               <Button href="/auth?mode=login" variant="glow" size="lg" className="h-14 px-8 rounded-2xl group font-black">
@@ -189,13 +189,13 @@ export default function Home() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="w-9 h-9 rounded-full border-2 border-background bg-white/10"
+                    className="w-9 h-9 rounded-full border-2 border-background bg-foreground/10"
                   />
                 ))}
               </div>
               <p className="text-sm">
                 <span className="text-[#B8924A] font-black">4.9/5</span>
-                <span className="text-white/35 font-bold"> · +10k clientes satisfeitos</span>
+                <span className="text-foreground/35 font-bold"> · +10k clientes satisfeitos</span>
               </p>
             </div>
           </motion.div>
@@ -207,7 +207,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="lg:col-span-5 relative"
           >
-            <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/[0.08]">
+            <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-foreground/[0.08]">
               <img
                 src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=2000"
                 alt="Profissional de serviços"
@@ -220,21 +220,21 @@ export default function Home() {
                 <div className="glass rounded-2xl p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-white/35">Destaque do mês</p>
-                      <h3 className="text-base font-black text-white mt-1">João Paulo</h3>
-                      <p className="text-xs text-white/40 font-bold">Eletricista Certificado</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-foreground/35">Destaque do mês</p>
+                      <h3 className="text-base font-black text-foreground mt-1">João Paulo</h3>
+                      <p className="text-xs text-foreground/40 font-bold">Eletricista Certificado</p>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-[#B8924A]/15 border border-[#B8924A]/25 flex items-center justify-center text-[#B8924A] text-sm font-black">
                       JP
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                  <div className="flex items-center gap-2 pt-2 border-t border-foreground/[0.06]">
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star key={s} size={11} fill="#B8924A" color="#B8924A" />
                       ))}
                     </div>
-                    <span className="text-[11px] font-bold text-white/40">4.9 · 120 serviços</span>
+                    <span className="text-[11px] font-bold text-foreground/40">4.9 · 120 serviços</span>
                   </div>
                 </div>
               </div>
@@ -246,8 +246,8 @@ export default function Home() {
                 <CheckCircle2 size={18} />
               </div>
               <div>
-                <p className="text-xs font-black text-white">Serviço concluído!</p>
-                <p className="text-[10px] text-white/35 font-bold">Há menos de 1 min</p>
+                <p className="text-xs font-black text-foreground">Serviço concluído!</p>
+                <p className="text-[10px] text-foreground/35 font-bold">Há menos de 1 min</p>
               </div>
             </div>
           </motion.div>
@@ -255,10 +255,10 @@ export default function Home() {
       </section>
 
       {/* ── Trust strip ───────────────────────────────────────────── */}
-      <div className="py-10 border-y border-white/[0.04]">
+      <div className="py-10 border-y border-foreground/[0.04]">
         <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap justify-between items-center gap-8">
           {['Elétrica', 'Construção', 'Hidráulica', 'Pintura', 'Limpeza'].map((s) => (
-            <span key={s} className="text-xl font-black tracking-tighter text-white/[0.12]">
+            <span key={s} className="text-xl font-black tracking-tighter text-foreground/[0.12]">
               {s}
             </span>
           ))}
@@ -272,13 +272,13 @@ export default function Home() {
             <div className="space-y-5">
               <Badge variant="gold">Categorias</Badge>
               <h2 className="text-5xl lg:text-7xl font-black tracking-tighter">
-                <span className="text-white">Explore as </span><br />
-                <span className="text-white/20">categorias.</span>
+                <span className="text-foreground">Explore as </span><br />
+                <span className="text-foreground/20">categorias.</span>
               </h2>
             </div>
             <Link
               href="/auth?mode=login"
-              className="flex items-center gap-2 font-black text-sm text-white/35 hover:text-[#B8924A] transition-colors group"
+              className="flex items-center gap-2 font-black text-sm text-foreground/35 hover:text-[#B8924A] transition-colors group"
             >
               Explorar tudo
               <ArrowUpRight size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -298,8 +298,8 @@ export default function Home() {
                   onClick={() => router.push('/auth?mode=login')}
                   className={cn(
                     'group cursor-pointer aspect-square flex flex-col items-center justify-center gap-5 rounded-3xl',
-                    'border border-white/[0.05] bg-white/[0.02] transition-all duration-500 p-6 relative overflow-hidden',
-                    'hover:border-[#B8924A]/30 hover:bg-white/[0.04] hover:-translate-y-1',
+                    'border border-foreground/[0.05] bg-foreground/[0.02] transition-all duration-500 p-6 relative overflow-hidden',
+                    'hover:border-[#B8924A]/30 hover:bg-foreground/[0.04] hover:-translate-y-1',
                     'hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5),0_0_20px_rgba(184,146,74,0.1)]',
                   )}
                 >
@@ -310,7 +310,7 @@ export default function Home() {
                   )} />
                   
                   {/* icon container */}
-                  <div className="relative z-10 w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-[#B8924A]/30 transition-all duration-500">
+                  <div className="relative z-10 w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-foreground/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-[#B8924A]/30 transition-all duration-500">
                     <cat.icon 
                       size={24} 
                       className="transition-all duration-500" 
@@ -324,8 +324,8 @@ export default function Home() {
                   </div>
 
                   <div className="text-center relative z-10">
-                    <h4 className="text-sm font-black text-white tracking-tight">{cat.label}</h4>
-                    <p className="text-[10px] font-bold text-white/20 group-hover:text-white/40 mt-1 uppercase tracking-widest">
+                    <h4 className="text-sm font-black text-foreground tracking-tight">{cat.label}</h4>
+                    <p className="text-[10px] font-bold text-foreground/20 group-hover:text-foreground/40 mt-1 uppercase tracking-widest">
                       {cat.items} profissionais
                     </p>
                   </div>
@@ -343,7 +343,7 @@ export default function Home() {
 
       {/* ── Values ────────────────────────────────────────────────── */}
       <section className="pb-24 mx-6">
-        <div className="max-w-[1400px] mx-auto rounded-3xl border border-white/[0.06] bg-white/[0.02] p-12 lg:p-20 relative overflow-hidden">
+        <div className="max-w-[1400px] mx-auto rounded-3xl border border-foreground/[0.06] bg-foreground/[0.02] p-12 lg:p-20 relative overflow-hidden">
           {/* top accent line */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-[#B8924A]/35 to-transparent" />
 
@@ -353,8 +353,8 @@ export default function Home() {
                 <div className="w-13 h-13 w-12 h-12 rounded-2xl bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center text-[#B8924A] group-hover:glow-gold-sm transition-all">
                   <Icon size={22} />
                 </div>
-                <h3 className="text-2xl font-black text-white">{title}</h3>
-                <p className="text-white/40 font-medium leading-relaxed text-sm">{desc}</p>
+                <h3 className="text-2xl font-black text-foreground">{title}</h3>
+                <p className="text-foreground/40 font-medium leading-relaxed text-sm">{desc}</p>
               </div>
             ))}
           </div>
@@ -364,16 +364,16 @@ export default function Home() {
       {/* ── App promo ─────────────────────────────────────────────── */}
       <section className="py-24 lg:py-36 overflow-hidden">
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-12 lg:p-20 flex flex-col lg:flex-row items-center justify-between gap-16 relative overflow-hidden">
+          <div className="rounded-3xl border border-foreground/[0.06] bg-foreground/[0.02] p-12 lg:p-20 flex flex-col lg:flex-row items-center justify-between gap-16 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-[500px] h-[400px] bg-[#B8924A]/5 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="space-y-8 lg:w-1/2 z-10">
               <Badge variant="gold">Em breve</Badge>
               <h2 className="text-5xl lg:text-6xl font-black tracking-tighter leading-none">
-                <span className="text-white">A experiência completa </span><br />
-                <span className="text-white/20">no seu bolso.</span>
+                <span className="text-foreground">A experiência completa </span><br />
+                <span className="text-foreground/20">no seu bolso.</span>
               </h2>
-              <p className="text-base font-medium text-white/40 max-w-md">
+              <p className="text-base font-medium text-foreground/40 max-w-md">
                 Acompanhe serviços em tempo real, agende horários e converse com profissionais pelo app.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -387,17 +387,17 @@ export default function Home() {
             </div>
 
             <div className="lg:w-1/2 relative flex justify-center z-10">
-              <div className="w-64 h-[480px] rounded-[2.5rem] border border-white/[0.10] bg-white/[0.03] relative overflow-hidden shadow-2xl">
+              <div className="w-64 h-[480px] rounded-[2.5rem] border border-foreground/[0.10] bg-foreground/[0.03] relative overflow-hidden shadow-2xl">
                 <div className="absolute inset-x-0 top-0 flex justify-center pt-3">
-                  <div className="w-20 h-5 bg-white/[0.05] rounded-full" />
+                  <div className="w-20 h-5 bg-foreground/[0.05] rounded-full" />
                 </div>
                 <div className="absolute inset-0 p-4 pt-12 space-y-3">
-                  <div className="h-7 w-2/3 bg-white/[0.05] rounded-full" />
+                  <div className="h-7 w-2/3 bg-foreground/[0.05] rounded-full" />
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="aspect-square bg-white/[0.03] rounded-2xl border border-white/[0.05]" />
-                    <div className="aspect-square bg-white/[0.03] rounded-2xl border border-white/[0.05]" />
+                    <div className="aspect-square bg-foreground/[0.03] rounded-2xl border border-foreground/[0.05]" />
+                    <div className="aspect-square bg-foreground/[0.03] rounded-2xl border border-foreground/[0.05]" />
                   </div>
-                  <div className="h-28 w-full bg-white/[0.03] rounded-2xl border border-white/[0.05]" />
+                  <div className="h-28 w-full bg-foreground/[0.03] rounded-2xl border border-foreground/[0.05]" />
                   <div className="h-10 w-full bg-[#B8924A]/15 border border-[#B8924A]/25 rounded-xl" />
                 </div>
               </div>
@@ -407,15 +407,15 @@ export default function Home() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────────── */}
-      <footer className="py-16 border-t border-white/[0.05]">
+      <footer className="py-16 border-t border-foreground/[0.05]">
         <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2 space-y-5">
             <Link href="/" className="flex items-center group">
               <span className="text-lg font-black tracking-tighter uppercase leading-none">
-                <span className="text-[#B8924A]">W</span><span className="text-white">ORKING</span>
+                <span className="text-[#B8924A]">W</span><span className="text-foreground">ORKING</span>
               </span>
             </Link>
-            <p className="max-w-sm text-sm font-medium text-white/35 leading-relaxed">
+            <p className="max-w-sm text-sm font-medium text-foreground/35 leading-relaxed">
               Transformando a forma como as pessoas contratam serviços locais através de tecnologia e confiança.
             </p>
           </div>
@@ -424,11 +424,11 @@ export default function Home() {
             { title: 'Suporte', links: ['Centro de Ajuda', 'Segurança', 'Termos de Uso'] },
           ].map(({ title, links }) => (
             <div key={title} className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-white/[0.18]">{title}</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground/[0.18]">{title}</h4>
               <ul className="space-y-3">
                 {links.map((l) => (
                   <li key={l}>
-                    <Link href="#" className="text-sm font-bold text-white/35 hover:text-[#B8924A] transition-colors">
+                    <Link href="#" className="text-sm font-bold text-foreground/35 hover:text-[#B8924A] transition-colors">
                       {l}
                     </Link>
                   </li>
@@ -438,8 +438,8 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="max-w-[1400px] mx-auto px-6 pt-12 border-t border-white/[0.04] mt-12 flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/[0.18]">
+        <div className="max-w-[1400px] mx-auto px-6 pt-12 border-t border-foreground/[0.04] mt-12 flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/[0.18]">
             © 2026 working Tecnologia Ltda.
           </span>
           <div className="flex gap-6">
@@ -447,7 +447,7 @@ export default function Home() {
               <Link
                 key={s}
                 href="#"
-                className="text-[10px] font-black uppercase tracking-widest text-white/[0.18] hover:text-[#B8924A] transition-colors"
+                className="text-[10px] font-black uppercase tracking-widest text-foreground/[0.18] hover:text-[#B8924A] transition-colors"
               >
                 {s}
               </Link>

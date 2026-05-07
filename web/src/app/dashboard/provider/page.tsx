@@ -24,7 +24,8 @@ export default function ProviderDashboard() {
       const { count } = await supabase
         .from('service_requests')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'open');
+        .eq('status', 'open')
+        .is('deleted_at', null);
       
       setOpportunityCount(count || 0);
       setLoading(false);

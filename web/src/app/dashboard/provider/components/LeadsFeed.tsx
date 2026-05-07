@@ -26,6 +26,7 @@ export const LeadsFeed = () => {
         .from('service_requests')
         .select('*')
         .eq('status', 'open')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(3);
 

@@ -213,7 +213,7 @@ export default function NotificationsPage() {
                               {n.description}
                             </p>
                           </div>
-                          <span className="text-[10px] font-black text-neutral-300 uppercase tracking-widest mt-1 text-right">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1 text-right">
                             {n.time}
                           </span>
                         </div>

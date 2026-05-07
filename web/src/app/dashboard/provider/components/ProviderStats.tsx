@@ -1,12 +1,12 @@
 'use client';
 
-import { DollarSign, TrendingUp, Award } from 'lucide-react';
+import { Briefcase, TrendingUp, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export const ProviderStats = () => {
-  const [stats, setStats] = useState({ earnings: 0, rating: 0, visibility: 0 });
+  const [stats, setStats] = useState({ completedServices: 0, rating: 0, visibility: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,14 +24,13 @@ export const ProviderStats = () => {
         .eq('id', user.id)
         .single();
 
-      // Fetch earnings from payments
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('amount')
+      // Fetch completed services count
+      const { count: completedCount } = await supabase
+        .from('proposals')
+        .select('id, service_requests!inner(status)', { count: 'exact', head: true })
         .eq('provider_id', user.id)
-        .eq('status', 'released');
-
-      const totalEarnings = payments?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+        .eq('status', 'accepted')
+        .eq('service_requests.status', 'completed');
 
       // Fetch active proposals count as "visibility" proxy or just show active proposals
       const { count: proposalCount } = await supabase
@@ -41,7 +40,7 @@ export const ProviderStats = () => {
         .eq('status', 'pending');
 
       setStats({
-        earnings: totalEarnings,
+        completedServices: completedCount || 0,
         rating: profile?.rating_avg || 5.0,
         visibility: proposalCount || 0
       });
@@ -53,11 +52,10 @@ export const ProviderStats = () => {
 
   const displayStats = [
     {
-      label: 'Ganhos (Pago Direto)',
-      value: loading ? '...' : `R$ ${stats.earnings.toLocaleString('pt-BR')}`,
-      icon: DollarSign,
+      label: 'Serviços realizados',
+      value: loading ? '...' : stats.completedServices.toString().padStart(2, '0'),
+      icon: Briefcase,
       active: true,
-      trend: '+0% hoje',
     },
     {
       label: 'Propostas Ativas',
@@ -81,7 +79,7 @@ export const ProviderStats = () => {
         <div
           key={i}
           className={cn(
-            'group relative flex flex-col gap-8 p-7 rounded-[24px] border transition-all duration-300 overflow-hidden',
+            'group relative flex flex-col gap-5 p-5 rounded-[22px] border transition-all duration-300 overflow-hidden',
             'hover:-translate-y-1',
             loading && 'animate-pulse',
             stat.active
@@ -93,34 +91,21 @@ export const ProviderStats = () => {
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#B8924A]/40 to-transparent" />
           )}
 
-          <div className="flex items-start justify-between">
-            <div className={cn(
-              'w-12 h-12 rounded-2xl border flex items-center justify-center transition-transform group-hover:scale-110',
-              stat.active
-                ? 'bg-[#B8924A]/15 border-[#B8924A]/25 text-[#B8924A]'
-                : 'bg-muted border-border text-muted-foreground',
-            )}>
-              <stat.icon size={20} strokeWidth={2} />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className={cn(
+                'w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 transition-transform group-hover:scale-110',
+                stat.active
+                  ? 'bg-[#B8924A]/15 border-[#B8924A]/25 text-[#B8924A]'
+                  : 'bg-muted border-border text-muted-foreground',
+              )}>
+                <stat.icon size={15} strokeWidth={2.5} />
+              </div>
+              <p className={cn('text-[10px] font-black uppercase tracking-widest leading-none', stat.active ? 'text-[#B8924A]/70' : 'text-muted-foreground')}>
+                {stat.label}
+              </p>
             </div>
-
-            {stat.active && stat.trend && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-black text-[10px] uppercase tracking-widest">
-                <TrendingUp size={10} />
-                {stat.trend}
-              </div>
-            )}
-            {!stat.active && stat.badge && (
-              <div className="px-2.5 py-1 rounded-full bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A] font-black text-[9px] uppercase tracking-wider">
-                {stat.badge}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <p className={cn('text-[10px] font-black uppercase tracking-widest', stat.active ? 'text-[#B8924A]/70' : 'text-muted-foreground')}>
-              {stat.label}
-            </p>
-            <p className={cn('text-4xl font-black tracking-tighter', stat.active ? 'text-foreground' : 'text-foreground')}>
+            <p className={cn('text-2xl font-black tracking-tighter text-foreground whitespace-nowrap')}>
               {stat.value}
             </p>
           </div>

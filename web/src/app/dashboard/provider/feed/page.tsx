@@ -119,6 +119,7 @@ export default function RequestFeedPage() {
           )
         `)
         .in('status', ['open', 'in_progress'])
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -183,32 +184,7 @@ export default function RequestFeedPage() {
         </div>
       </header>
 
-      {/* Control Bar */}
-      <div className="flex flex-col lg:flex-row gap-4 sticky top-[-21px] md:top-[-33px] z-30 bg-background/95 backdrop-blur-md py-6 -mx-3 px-3 sm:-mx-8 sm:px-8 border-b border-border shadow-sm transition-shadow mb-10">
-        <div className="flex-1">
-          <Input 
-            placeholder="Pesquisar por serviço, bairro ou cliente..." 
-            icon={<Search size={22} />}
-            value={searchTerm}
-            className="bg-muted/50 border-border shadow-inner h-14"
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <Button 
-          variant="outline" 
-          className={cn(
-            "h-14 font-black bg-card border-border transition-all px-8 text-foreground",
-            (minPrice > 0 || onlyUrgent) && "border-[#B8924A] text-[#B8924A] bg-accent/10"
-          )}
-          onClick={() => setIsFiltersOpen(true)}
-        >
-          <SlidersHorizontal size={20} /> 
-          Filtros Avançados
-          {(minPrice > 0 || onlyUrgent) && (
-            <span className="ml-2 w-2 h-2 bg-[#B8924A] rounded-full" />
-          )}
-        </Button>
-      </div>
+
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-start">
         {/* Main Feed */}
@@ -238,10 +214,10 @@ export default function RequestFeedPage() {
                       <Card className="group hover:border-[#B8924A] transition-all overflow-hidden border-border bg-card">
                         <CardContent className="p-0">
                           <div className="flex flex-col md:flex-row">
-                            <div className="flex-1 p-4 sm:p-8">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 shrink-0 rounded-xl bg-muted flex items-center justify-center font-black text-xs text-muted-foreground border border-border overflow-hidden">
+                            <div className="flex-1 p-5 sm:p-6">
+                              <div className="flex items-center justify-between mb-4 gap-4">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-10 h-10 shrink-0 rounded-lg bg-muted flex items-center justify-center font-black text-[10px] text-muted-foreground border border-border overflow-hidden">
                                     {opp.client?.avatar_url ? (
                                       <img src={opp.client.avatar_url} alt={clientName} className="w-full h-full object-cover" />
                                     ) : (
@@ -249,90 +225,62 @@ export default function RequestFeedPage() {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-black italic text-foreground">{clientName}</p>
-                                    <div className="flex items-center flex-wrap gap-2">
+                                    <p className="text-xs font-black italic text-foreground leading-tight">{clientName}</p>
+                                    <div className="flex items-center gap-1.5">
                                       <div className="flex items-center gap-1">
-                                        <Star size={12} fill="#B8924A" className="text-[#B8924A]" />
-                                        <span className="text-xs font-bold text-foreground">{opp.client?.rating_avg || '5.0'}</span>
+                                        <Star size={10} fill="#B8924A" className="text-[#B8924A]" />
+                                        <span className="text-[10px] font-bold text-foreground">{opp.client?.rating_avg || '5.0'}</span>
                                       </div>
-                                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">· {opp.city}, {opp.state}</span>
+                                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-black">· {opp.city}</span>
                                     </div>
                                   </div>
                                 </div>
                                 <Badge 
                                   className={cn(
-                                    "w-fit rounded-md flex items-center gap-1.5 py-1.5 font-black uppercase text-[10px] tracking-widest whitespace-nowrap",
+                                    "w-fit rounded-md flex items-center gap-1 py-1 px-2 font-black uppercase text-[9px] tracking-widest whitespace-nowrap",
                                     isUrgente ? "bg-red-500/10 text-red-600 border-red-500/20" : "bg-muted text-muted-foreground border-border"
                                   )}
                                 >
-                                  {isUrgente && <Zap size={10} className="fill-current" />}
+                                  {isUrgente && <Zap size={8} className="fill-current" />}
                                   {opp.category}
                                 </Badge>
                               </div>
 
-                              <h2 className="text-3xl font-black mb-6 group-hover:text-[#B8924A] transition-colors tracking-tight leading-tight text-foreground">{opp.title}</h2>
+                              <h2 className="text-xl font-black mb-4 group-hover:text-[#B8924A] transition-colors tracking-tight leading-tight text-foreground">{opp.title}</h2>
                               
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-2 text-muted-foreground/60">
-                                    <MapPin size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Localização</span>
-                                  </div>
-                                  <p className="font-bold text-md text-foreground line-clamp-1">
+                              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
+                                <div className="flex items-center gap-2">
+                                  <MapPin size={12} className="text-muted-foreground/60" />
+                                  <p className="font-bold text-xs text-foreground">
                                     {opp.address_text || opp.city}
                                   </p>
                                 </div>
 
-                                 <div className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-2 text-muted-foreground/60">
-                                    <MapPin size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Localização</span>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <p className="font-bold text-md text-foreground">
-                                      {opp.city?.includes('·') ? opp.city.split('·')[1].trim() : opp.city || 'Localização'}
-                                    </p>
-                                    {opp.city?.includes('·') && (
-                                      <div className="bg-[#B8924A]/10 border border-[#B8924A]/20 text-[#B8924A] px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
-                                        {opp.city.split('·')[0].trim()}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-2 text-muted-foreground/60">
-                                    <Clock size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Publicação</span>
-                                  </div>
-                                  <p className="font-bold text-md text-foreground">{timeAgo}</p>
+                                <div className="flex items-center gap-2">
+                                  <Clock size={12} className="text-muted-foreground/60" />
+                                  <p className="font-bold text-xs text-foreground">{timeAgo}</p>
                                 </div>
                               </div>
 
-                              <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                                {opp.tags?.map((tag: string) => (
-                                  <span key={tag} className="text-[9px] font-black uppercase tracking-widest bg-muted/50 text-muted-foreground px-4 py-2 rounded-lg border border-border">
+                              <div className="flex flex-wrap gap-1.5">
+                                {opp.tags?.slice(0, 3).map((tag: string) => (
+                                  <span key={tag} className="text-[8px] font-black uppercase tracking-widest bg-muted/40 text-muted-foreground/80 px-2.5 py-1 rounded-md border border-border/50">
                                     {tag}
                                   </span>
-                                )) || (
-                                  <span className="text-[9px] font-black uppercase tracking-widest bg-muted/50 text-muted-foreground px-4 py-2 rounded-lg border border-border">
-                                    Padrão
-                                  </span>
-                                )}
+                                ))}
                               </div>
                             </div>
 
-                            <div className="bg-muted/50 md:w-64 p-8 flex flex-col justify-center gap-4 rounded-[2rem] m-3 border border-border/50">
-
+                            <div className="bg-muted/30 md:w-48 p-4 sm:p-6 flex flex-col justify-center gap-3 rounded-[1.5rem] m-2 border border-border/40">
                               <Button 
                                 fullWidth 
                                 variant="uber" 
-                                size="lg" 
+                                size="sm" 
                                 href={`/dashboard/provider/lead/${opp.id}`}
-                                className="group/btn h-14"
+                                className="group/btn h-11 text-xs"
                               >
                                 Ver projeto
-                                <ChevronRight className="group-hover/btn:translate-x-1 transition-transform" />
+                                <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                               </Button>
                             </div>
                           </div>
@@ -400,7 +348,7 @@ export default function RequestFeedPage() {
                         step="50"
                         value={minPrice}
                         onChange={(e) => setMinPrice(parseInt(e.target.value))}
-                        className="w-full h-2 bg-neutral-100 rounded-lg appearance-none cursor-pointer accent-[#B8924A]" 
+                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-[#B8924A]" 
                       />
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                         <span>R$ 0</span>

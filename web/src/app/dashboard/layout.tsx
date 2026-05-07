@@ -267,15 +267,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     { label: 'Início',        href: '/dashboard/client',          icon: Home },
     { label: 'Pedidos',       href: '/dashboard/client/requests',  icon: Briefcase },
     { label: 'Mensagens',     href: '/dashboard/chat',             icon: MessageSquare },
-    { label: 'Meu Perfil',    href: '/dashboard/profile',          icon: User },
+    { label: 'Perfil',        href: '/dashboard/profile',          icon: User },
     { label: 'Configurações', href: '/dashboard/settings',         icon: Settings },
   ];
 
   const providerNav: NavItem[] = [
     { label: 'Painel',            href: '/dashboard/provider',      icon: LayoutDashboard },
-    { label: 'Encontrar Serviços',href: '/dashboard/provider/feed', icon: Search },
+    { label: 'Serviços',          href: '/dashboard/provider/feed', icon: Search },
     { label: 'Mensagens',         href: '/dashboard/chat',          icon: MessageSquare },
-    { label: 'Meu Perfil',        href: '/dashboard/profile',       icon: User },
+    { label: 'Perfil',           href: '/dashboard/profile',       icon: User },
     { label: 'Configurações',     href: '/dashboard/settings',      icon: Settings },
   ];
 
