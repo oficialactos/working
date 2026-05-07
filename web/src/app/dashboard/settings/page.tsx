@@ -14,6 +14,7 @@ import {
   Smartphone,
   Trash2,
   Info,
+  MapPin,
   Award,
   Image as ImageIcon,
   Upload,
@@ -53,6 +54,8 @@ function SettingsContent() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [cep, setCep] = useState('');
+  const [address, setAddress] = useState('');
   const [cpfCnpj, setCpfCnpj] = useState('');
   const [bio, setBio] = useState('');
 
@@ -69,6 +72,8 @@ function SettingsContent() {
   const [notifMessages, setNotifMessages] = useState(true);
   const [notifStatus, setNotifStatus] = useState(true);
   const [notifPlatform, setNotifPlatform] = useState(true);
+  const [showAccountDeleteConfirm, setShowAccountDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Notification state
   const [notif, setNotif] = useState<{
@@ -107,6 +112,8 @@ function SettingsContent() {
         if (profile) {
           setFullName(profile.full_name || meta.full_name || '');
           setPhone(profile.phone || meta.phone || '');
+          setCep(profile.cep || meta.cep || '');
+          setAddress(profile.address || meta.address || '');
           setCpfCnpj(profile.cpf_cnpj || meta.cnpj || '');
           setBio(profile.bio || '');
           setNotifLeads(profile.notif_new_leads !== false);
@@ -116,6 +123,8 @@ function SettingsContent() {
         } else {
           setFullName(meta.full_name || '');
           setPhone(meta.phone || '');
+          setCep(meta.cep || '');
+          setAddress(meta.address || '');
           setCpfCnpj(meta.cnpj || '');
         }
 
@@ -194,19 +203,27 @@ function SettingsContent() {
     }
   }, [searchParams, isIOS]);
 
-  const handleSave = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.SyntheticEvent) => {
+    console.log('Iniciando salvamento...');
+    if (e) e.preventDefault();
     setIsSaving(true);
     
     try {
+      console.log('Buscando sessão...');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        console.error('Sessão não encontrada');
+        return;
+      }
+      console.log('Enviando dados para o Supabase...', { fullName, phone, cep, address });
 
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: fullName,
           phone: phone,
+          cep: cep,
+          address: address,
           cpf_cnpj: cpfCnpj,
           bio: bio,
           notif_new_leads: notifLeads,
@@ -223,12 +240,37 @@ function SettingsContent() {
         data: { full_name: fullName }
       });
 
-      showNotification('success', 'Configurações Salvas', 'Suas alterações foram aplicadas com sucesso.');
+      showNotification('success', '✅ SALVO COM SUCESSO', 'Suas informações de perfil foram atualizadas no banco de dados.');
     } catch (err: any) {
       console.error('Error saving profile:', err);
-      showNotification('error', 'Erro ao Salvar', 'Não foi possível salvar suas alterações. Tente novamente.');
+      const errorMsg = err.message || 'Erro desconhecido';
+      showNotification('error', '❌ FALHA AO SALVAR', `Ocorreu um erro: ${errorMsg}`);
+      alert(`Erro ao salvar: ${errorMsg}`);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+      
+      if (error) throw error;
+
+      showNotification('success', 'Conta Excluída', 'Sua conta foi removida com sucesso. Até logo!');
+      
+      // Logout and redirect
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        router.push('/auth');
+      }, 2000);
+
+    } catch (err: any) {
+      console.error('Erro detalhado na exclusão:', err.message || err);
+      showNotification('error', 'Erro ao Excluir', `Falha técnica: ${err.message || 'Verifique se a função SQL foi criada'}`);
+      setIsDeletingAccount(false);
+      setShowAccountDeleteConfirm(false);
     }
   };
 
@@ -254,6 +296,51 @@ function SettingsContent() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-24">
+      {/* Account Delete Confirmation */}
+      <motion.div>
+        {showAccountDeleteConfirm && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => !isDeletingAccount && setShowAccountDeleteConfirm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="relative bg-card border border-border w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-6"
+            >
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center text-red-500 mx-auto">
+                <Trash2 size={28} />
+              </div>
+              <div className="space-y-2 text-center">
+                <h3 className="text-xl font-bold text-foreground">Excluir sua conta?</h3>
+                <p className="text-muted-foreground text-sm">
+                  Esta ação é <strong>permanente</strong>. Você perderá acesso a todos os seus pedidos, propostas e histórico de mensagens imediatamente.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  fullWidth 
+                  onClick={() => setShowAccountDeleteConfirm(false)} 
+                  disabled={isDeletingAccount}
+                  className="rounded-xl h-12 font-bold order-2 sm:order-1 bg-transparent border-border text-foreground hover:bg-muted"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  fullWidth 
+                  onClick={handleDeleteAccount} 
+                  isLoading={isDeletingAccount}
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-xl h-12 font-bold shadow-sm order-1 sm:order-2"
+                >
+                  Confirmar Exclusão
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-4">
@@ -360,6 +447,21 @@ function SettingsContent() {
                       icon={<Smartphone size={18} />}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
+                    />
+                    <Input 
+                      label="CEP" 
+                      placeholder="00000-000" 
+                      icon={<MapPin size={18} />}
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
+                    />
+                    <Input 
+                      label="Endereço Completo" 
+                      placeholder="Rua, Número, Bairro..." 
+                      icon={<Smartphone size={18} />} // Reusing icon or MapPin
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="md:col-span-2"
                     />
                   </div>
                   <div className="pt-4">
@@ -633,6 +735,7 @@ function SettingsContent() {
             </div>
             <Button 
               variant="outline" 
+              onClick={() => setShowAccountDeleteConfirm(true)}
               className="w-full md:w-auto h-auto py-5 px-8 border-red-500/20 text-red-400 hover:bg-red-500/[0.08] hover:border-red-500/30 rounded-[1.5rem] md:rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all"
             >
               <Trash2 size={20} className="shrink-0" />

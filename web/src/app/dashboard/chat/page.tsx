@@ -229,11 +229,12 @@ function ChatContent() {
       .from('chats')
       .select(`
         *,
-        request:service_requests(id, title, category),
+        request:service_requests!inner(id, title, category, deleted_at),
         client:profiles!client_id(id, full_name, avatar_url, rating_avg, rating_count),
         provider:profiles!provider_id(id, full_name, avatar_url, rating_avg, rating_count)
       `)
       .or(`client_id.eq.${userId},provider_id.eq.${userId}`)
+      .is('request.deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (!error && data) {

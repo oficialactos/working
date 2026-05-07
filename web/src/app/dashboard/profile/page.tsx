@@ -44,6 +44,9 @@ export default function ProfilePage() {
     name: '...', 
     role: 'client', 
     avatar: '', 
+    phone: '',
+    cep: '',
+    address: '',
     createdAt: '',
     stats: { active: 0, total: 0, rating: 0, ratingCount: 0, earnings: 0 }
   });
@@ -76,7 +79,7 @@ export default function ProfilePage() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       // Fetch Stats
       let stats = { active: 0, total: 0, rating: 0, ratingCount: 0, earnings: 0 };
@@ -105,6 +108,9 @@ export default function ProfilePage() {
         name: profile?.full_name || user.user_metadata?.full_name || 'Usuário',
         role: role as 'client' | 'provider',
         avatar: profile?.avatar_url || user.user_metadata?.avatar_url || '',
+        phone: profile?.phone || '',
+        cep: profile?.cep || '',
+        address: profile?.address || '',
         createdAt: user.created_at,
         stats: {
           ...stats,
@@ -144,23 +150,61 @@ export default function ProfilePage() {
       }
     }
 
-    const { error } = await supabase
+    const payload = {
+      full_name: editName,
+      phone: editPhone,
+      cep: editCep,
+      address: editAddress,
+      latitude,
+      longitude,
+      updated_at: new Date().toISOString()
+    };
+
+    let { data: updatedRows, error } = await supabase
       .from('profiles')
-      .update({
+      .update(payload)
+      .eq('id', session.user.id)
+      .select();
+
+    // Se o perfil não existir (usuário antigo sem registro na tabela profiles), a gente faz o insert
+    if (!error && (!updatedRows || updatedRows.length === 0)) {
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: session.user.id,
+          role: userData.role || 'client',
+          ...payload
+        });
+      error = insertError;
+    }
+
+    // Atualiza também nos metadados do Auth para garantir que a sessão reflita as mudanças
+    await supabase.auth.updateUser({
+      data: {
         full_name: editName,
-        phone: editPhone,
-        cep: editCep,
-        address: editAddress,
-        latitude,
-        longitude
-      })
-      .eq('id', session.user.id);
+        phone: editPhone
+      }
+    });
 
     if (error) {
       showError('Erro ao salvar perfil', error.message);
+      alert(`Erro ao salvar: ${error.message}`);
     } else {
-      setUserData(prev => ({ ...prev, name: editName }));
+      setNotif({
+        show: true,
+        type: 'success',
+        title: '✅ PERFIL ATUALIZADO',
+        message: 'Suas informações foram salvas com sucesso no banco de dados.'
+      });
+      setUserData(prev => ({ 
+        ...prev, 
+        name: editName,
+        phone: editPhone,
+        cep: editCep,
+        address: editAddress
+      }));
       setIsEditing(false);
+      // alert('Sucesso: Informações salvas!');
     }
     setSaving(false);
   };

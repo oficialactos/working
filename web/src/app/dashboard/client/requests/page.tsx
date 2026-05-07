@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users, ArrowRight, MessageSquare, PlusCircle,
-  Clock, CheckCircle2, Zap, Filter, Search, ChevronRight
+  Clock, CheckCircle2, Zap, Filter, Search, ChevronRight,
+  MoreVertical, Pencil, Trash2
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
@@ -24,11 +26,17 @@ const statusConfig: Record<string, { label: string; variant: 'gold' | 'success' 
 
 const filters = ['Todos', 'open', 'in_progress', 'completed'];
 
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+
 export default function RequestsPage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [search, setSearch] = useState('');
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -43,6 +51,7 @@ export default function RequestsPage() {
           proposals:proposals(count)
         `)
         .eq('client_id', session.user.id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -78,8 +87,43 @@ export default function RequestsPage() {
     completed:      processedRequests.filter(r => r.status === 'completed').length,
   };
 
+
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    
+    const id = confirmDeleteId;
+    setDeletingId(id);
+    
+    // Soft Delete: Atualiza o campo deleted_at ao invés de remover a linha
+    const { error } = await supabase
+      .from('service_requests')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
+    
+    if (!error) {
+      setRequests(prev => prev.filter(r => r.id !== id));
+      setConfirmDeleteId(null);
+    } else {
+      alert('Erro ao excluir pedido');
+    }
+    setDeletingId(null);
+    setMenuOpenId(null);
+  };
+
   return (
     <div className="space-y-10 pb-20 max-w-5xl mx-auto">
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={handleDelete}
+        isLoading={!!deletingId}
+        variant="danger"
+        title="Excluir Pedido?"
+        description="O pedido será removido da sua visualização, mas o histórico de mensagens e dados será mantido para sua segurança."
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Manter Pedido"
+      />
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div className="space-y-1">
@@ -167,6 +211,7 @@ export default function RequestsPage() {
                 const cfg = statusConfig[req.status] || statusConfig['open'];
                 const timeAgo = formatDistanceToNow(new Date(req.created_at), { addSuffix: true, locale: ptBR });
                 const proposalCount = req.proposals?.[0]?.count || 0;
+                const isMenuOpen = menuOpenId === req.id;
 
                 return (
                   <motion.div
@@ -176,9 +221,12 @@ export default function RequestsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ delay: i * 0.05 }}
-                    className="group flex flex-col lg:flex-row lg:items-center rounded-[24px] border border-border bg-card overflow-hidden hover:border-[#B8924A]/25 hover:bg-[#B8924A]/[0.02] transition-all duration-300"
+                    className={cn(
+                      "group relative flex flex-col lg:flex-row lg:items-center rounded-[24px] border border-border bg-card hover:border-[#B8924A]/25 hover:bg-[#B8924A]/[0.02] transition-all duration-300",
+                      isMenuOpen ? "z-50" : "z-0"
+                    )}
                   >
-                    <div className="flex-1 p-4 lg:p-5">
+                    <div className="flex-1 p-4 lg:p-5 flex items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className={cn(
@@ -208,9 +256,51 @@ export default function RequestsPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Options Menu Button */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setMenuOpenId(isMenuOpen ? null : req.id)}
+                          className={cn(
+                            "w-8 h-8 flex items-center justify-center rounded-lg border transition-all",
+                            isMenuOpen 
+                              ? "bg-[#B8924A]/10 border-[#B8924A]/30 text-[#B8924A]" 
+                              : "bg-muted/20 border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                          )}
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+
+                        <AnimatePresence>
+                          {isMenuOpen && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setMenuOpenId(null)} />
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden"
+                              >
+                                <button
+                                  onClick={() => router.push(`/dashboard/client/request/${req.id}`)}
+                                  className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-foreground transition-all border-b border-border/10"
+                                >
+                                  <Pencil size={14} className="text-[#B8924A]" /> Editar Pedido
+                                </button>
+                                <button
+                                  onClick={() => setConfirmDeleteId(req.id)}
+                                  className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-500/70 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                                >
+                                  <Trash2 size={14} /> {deletingId === req.id ? 'Excluindo...' : 'Excluir'}
+                                </button>
+                              </motion.div>
+                            </>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
 
-                    <div className="px-4 py-2.5 lg:px-6 border-t lg:border-t-0 lg:border-l border-border flex items-center justify-end lg:min-w-[160px] bg-muted/5 lg:bg-transparent">
+                    <div className="px-4 py-2.5 lg:px-6 border-t lg:border-t-0 lg:border-l border-border flex items-center justify-end lg:min-w-[160px] bg-muted/5 lg:bg-transparent rounded-b-[24px] lg:rounded-b-none lg:rounded-r-[24px]">
                       <Button
                         href={`/dashboard/client/request/${req.id}`}
                         variant="glow"

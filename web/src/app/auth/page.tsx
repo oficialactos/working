@@ -14,7 +14,10 @@ import {
   Fingerprint,
   Sparkles,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Phone,
+  MapPin,
+  Home
 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
@@ -38,6 +41,9 @@ function AuthContent() {
   const [error, setError] = useState<string | null>(null);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [cep, setCep] = useState('');
+  const [address, setAddress] = useState('');
 
   const maskCnpj = (value: string) =>
     value
@@ -59,6 +65,26 @@ function AuthContent() {
         if (res.ok) {
           const data = await res.json();
           setRazaoSocial(data.razao_social || '');
+        }
+      } catch {
+        // silent
+      } finally {
+        setIsFetchingCnpj(false);
+      }
+    }
+  };
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+    setCep(val.replace(/^(\d{5})(\d)/, '$1-$2'));
+    
+    if (val.length === 8) {
+      setIsFetchingCnpj(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
         }
       } catch {
         // silent
@@ -124,6 +150,9 @@ function AuthContent() {
             data: {
               full_name: userName,
               role: role,
+              phone: phone,
+              cep: cep,
+              address: address,
               cnpj: role === 'provider' ? cnpj : undefined,
               razao_social: role === 'provider' ? razaoSocial : undefined,
             }
@@ -146,7 +175,11 @@ function AuthContent() {
           return;
         }
 
-        if (data.user) {
+        if (data.session) {
+          // If email confirmation is disabled, we get a session immediately
+          const userRole = data.user?.user_metadata?.role || 'client';
+          router.replace(userRole === 'client' ? '/dashboard/client' : '/dashboard/provider');
+        } else if (data.user) {
           setEmailSent(true);
         }
       } else {
@@ -405,11 +438,47 @@ function AuthContent() {
                       />
                     </>
                   )}
+
+                  {mode === 'register' && (
+                    <>
+                      <Input
+                        label="Telefone / WhatsApp"
+                        placeholder="(00) 00000-0000"
+                        icon={<Phone size={16} />}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-1">
+                          <Input
+                            label="CEP"
+                            placeholder="00000-000"
+                            icon={<MapPin size={16} />}
+                            value={cep}
+                            onChange={handleCepChange}
+                            required
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <Input
+                            label="Endereço Completo"
+                            placeholder="Rua, Número, Bairro..."
+                            icon={<Home size={16} />}
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            required
+                            className={isFetchingCnpj ? 'animate-pulse opacity-60' : ''}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               </AnimatePresence>
 
               <Input
-                label="E-mail profissional"
+                label="E-mail"
                 placeholder="exemplo@email.com"
                 type="email"
                 icon={<Mail size={16} />}
