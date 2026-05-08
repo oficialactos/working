@@ -184,22 +184,21 @@ export default function LeadDetailsPage() {
         const fullName = session.user.user_metadata?.full_name || session.user.email;
 
         if (metadataRole === 'provider') {
-          console.info('Auto-creating missing provider profile...');
-          // Try to create the missing profile
-          const { error: insertError } = await supabase
+          console.info('Auto-syncing missing provider profile...');
+          const { error: syncError } = await supabase
             .from('profiles')
-            .insert({
+            .upsert({
               id: session.user.id,
               role: 'provider',
               full_name: fullName
             });
           
-          if (!insertError) {
-            // Also create provider_profile
-            await supabase.from('provider_profiles').insert({ id: session.user.id });
+          if (!syncError) {
+            // Also ensure provider_profile exists
+            await supabase.from('provider_profiles').upsert({ id: session.user.id });
             profile = { role: 'provider' };
           } else {
-            console.error('Failed to auto-create profile:', insertError);
+            console.error('Failed to sync profile:', syncError);
           }
         } else {
           profile = { role: metadataRole };

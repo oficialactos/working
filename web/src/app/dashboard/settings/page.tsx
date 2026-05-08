@@ -219,7 +219,9 @@ function SettingsContent() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: session.user.id,
+          role: role,
           full_name: fullName,
           phone: phone,
           cep: cep,
@@ -230,8 +232,7 @@ function SettingsContent() {
           notif_messages: notifMessages,
           notif_status_updates: notifStatus,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', session.user.id);
+        });
 
       if (error) throw error;
 

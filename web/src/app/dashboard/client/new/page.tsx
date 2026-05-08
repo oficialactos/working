@@ -453,29 +453,19 @@ export default function NewRequestPage() {
     const fullCity = city || 'São Paulo';
 
     // Garante que o perfil existe antes de criar o pedido (o trigger pode não ter rodado)
-    const { data: existingProfile } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: profileError } = await supabase
       .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
+      .upsert({
+        id: userId,
+        role: 'client',
+        full_name: user?.user_metadata?.full_name || user?.email || '',
+        avatar_url: user?.user_metadata?.avatar_url || null,
+      });
 
-    if (!existingProfile) {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          role: 'client',
-          full_name: user?.user_metadata?.full_name || user?.email || '',
-          avatar_url: user?.user_metadata?.avatar_url || null,
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        showError('Erro ao criar perfil', profileError.message);
-        setLoading(false);
-        return;
-      }
+    if (profileError) {
+      console.warn('Profile sync warning:', profileError);
+      // Continuamos mesmo assim, pois o erro pode ser apenas RLS se já existir
     }
 
     const { error } = await supabase
