@@ -275,15 +275,24 @@ export default function ProfilePage() {
         .getPublicUrl(filePath);
 
       // 1. Atualiza na tabela profiles (Principal)
+      // Usamos update em vez de upsert para evitar problemas de RLS de 'new row'
       const { error: updateError } = await supabase
         .from('profiles')
-        .upsert({ 
+        .update({ 
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', session.user.id);
+
+      if (updateError) {
+        console.warn('Erro ao atualizar profiles (DB), tentando upsert fallback:', updateError);
+        // Fallback: se o update não funcionou (ex: perfil não existe), tentamos upsert mas ignoramos erro de RLS
+        await supabase.from('profiles').upsert({
           id: session.user.id,
           avatar_url: publicUrl,
           role: userData.role || 'client'
         });
-
-      if (updateError) throw updateError;
+      }
 
       // 2. Atualiza nos metadados do Auth (Backup/Sessão)
       await supabase.auth.updateUser({
@@ -309,13 +318,15 @@ export default function ProfilePage() {
       // 1. Atualiza na tabela profiles
       const { error: updateError } = await supabase
         .from('profiles')
-        .upsert({ 
-          id: session.user.id,
+        .update({ 
           avatar_url: null,
-          role: userData.role || 'client'
-        });
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', session.user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.warn('Erro ao remover foto do DB:', updateError);
+      }
 
       // 2. Atualiza nos metadados do Auth
       await supabase.auth.updateUser({

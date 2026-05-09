@@ -290,16 +290,18 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const isLeadPage = pathname.includes('/dashboard/provider/lead/');
+
   return (
     <div className={cn(
       "min-h-screen bg-background overflow-hidden flex flex-col md:flex-row",
-      isChatOpen ? "p-0 gap-0" : "p-2 md:p-5 gap-3 md:gap-5"
+      (isChatOpen || isLeadPage) ? "p-0 gap-0" : "p-2 md:p-5 gap-3 md:gap-5"
     )}>
 
       {/* ── Desktop Sidebar ──────────────────────────────────────── */}
       <aside className={cn(
         "hidden md:flex w-[270px] bg-[hsl(var(--sidebar-bg))] border-r border-border text-foreground flex-col z-50 overflow-hidden shrink-0",
-        isChatPage
+        (isChatPage || isLeadPage)
           ? "h-screen sticky top-0 rounded-none shadow-none"
           : "h-[calc(100vh-2.5rem)] rounded-[28px] shadow-[0_24px_60px_rgba(0,0,0,0.1)] sticky top-5"
       )}>
@@ -400,11 +402,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* ── Main panel ────────────────────────────────────────────── */}
       <div className={cn(
         "flex-1 flex flex-col min-w-0 overflow-hidden",
-        isChatOpen ? "h-screen" : "h-[calc(100vh-2.5rem)]"
+        (isChatOpen || isLeadPage) ? "h-screen" : "h-[calc(100vh-2.5rem)]"
       )}>
         <main className={cn(
           "flex-1 bg-card flex flex-col overflow-hidden relative",
-          isChatOpen ? "rounded-none border-none shadow-none" : "border border-border rounded-[28px] shadow-[0_8px_40px_rgba(0,0,0,0.05)]"
+          (isChatOpen || isLeadPage) ? "rounded-none border-none shadow-none" : "border border-border rounded-[28px] shadow-[0_8px_40px_rgba(0,0,0,0.05)]"
         )}>
 
           {/* top accent line */}
@@ -560,11 +562,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           <div
             className={cn(
               "flex-1 no-scrollbar overflow-x-hidden",
-              (isChatOpen || pathname === '/dashboard/client') ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
+              (isChatOpen || pathname === '/dashboard/client' || isLeadPage) ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
             )}
             style={!(isChatOpen || pathname === '/dashboard/client') ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
           >
-            <div className={cn("mx-auto w-full", (isChatOpen || pathname === '/dashboard/client') ? "h-full" : "max-w-[1400px]")}>
+            <div className={cn(
+              "mx-auto w-full", 
+              (isChatOpen || pathname === '/dashboard/client' || isLeadPage) ? "h-full max-w-full" : "max-w-[1400px]"
+            )}>
               {children}
             </div>
           </div>

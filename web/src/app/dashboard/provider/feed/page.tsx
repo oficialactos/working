@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Navigation,
   Award,
+  User,
   X
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -90,16 +91,33 @@ export default function RequestFeedPage() {
             setCurrentCity('São Paulo, SP');
           }
         } catch (err) {
-          console.error('Location Error:', err);
+          console.error('Location Fetch Error:', err);
           setCurrentCity('São Paulo, SP');
         } finally {
           setIsLocating(false);
         }
       },
       (error) => {
-        console.error('Geolocation Error:', error);
+        let errorMessage = 'Erro desconhecido';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Permissão negada pelo usuário';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Localização indisponível (Sinal fraco ou GPS desligado)';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Tempo esgotado ao obter localização';
+            break;
+        }
+        console.error(`Geolocation Error: [Code ${error.code}] ${error.message || 'Sem mensagem'} (${errorMessage})`);
         setCurrentCity('São Paulo, SP');
         setIsLocating(false);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 0 // Force fresh location if allowed
       }
     );
   };
@@ -206,82 +224,66 @@ export default function RequestFeedPage() {
                   return (
                     <motion.div
                       key={opp.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <Card className="group hover:border-[#B8924A] transition-all overflow-hidden border-border bg-card">
-                        <CardContent className="p-0">
-                          <div className="flex flex-col md:flex-row">
-                            <div className="flex-1 p-5 sm:p-6">
-                              <div className="flex items-center justify-between mb-4 gap-4">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-10 h-10 shrink-0 rounded-lg bg-muted flex items-center justify-center font-black text-[10px] text-muted-foreground border border-border overflow-hidden">
-                                    {opp.client?.avatar_url ? (
-                                      <img src={opp.client.avatar_url} alt={clientName} className="w-full h-full object-cover" />
-                                    ) : (
-                                      clientName.split(' ').map((n: string) => n[0]).join('')
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-black italic text-foreground leading-tight">{clientName}</p>
-                                    <div className="flex items-center gap-1.5">
-                                      <div className="flex items-center gap-1">
-                                        <Star size={10} fill="#B8924A" className="text-[#B8924A]" />
-                                        <span className="text-[10px] font-bold text-foreground">{opp.client?.rating_avg || '5.0'}</span>
-                                      </div>
-                                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-black">· {opp.city}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <Badge 
-                                  className={cn(
-                                    "w-fit rounded-md flex items-center gap-1 py-1 px-2 font-black uppercase text-[9px] tracking-widest whitespace-nowrap",
-                                    isUrgente ? "bg-red-500/10 text-red-600 border-red-500/20" : "bg-muted text-muted-foreground border-border"
+                      <Card className="group hover:border-[#B8924A]/40 transition-all border-border bg-card overflow-hidden">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-start gap-4">
+                            {/* Main Content Column */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2">
+                                  {isUrgente && (
+                                    <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-red-500 bg-red-500/5 px-2 py-0.5 rounded-md border border-red-500/10">
+                                      <Zap size={8} className="fill-current" /> Urgente
+                                    </span>
                                   )}
-                                >
-                                  {isUrgente && <Zap size={8} className="fill-current" />}
-                                  {opp.category}
-                                </Badge>
+                                </div>
                               </div>
 
-                              <h2 className="text-xl font-black mb-4 group-hover:text-[#B8924A] transition-colors tracking-tight leading-tight text-foreground">{opp.title}</h2>
+                              <div className="flex items-center justify-between gap-3 mb-0.5">
+                                <h2 className="text-lg font-black group-hover:text-[#B8924A] transition-colors tracking-tight leading-tight text-foreground truncate">
+                                  {opp.title}
+                                </h2>
+                                <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap shrink-0">{timeAgo}</span>
+                              </div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-[#B8924A] mb-2">
+                                {opp.category}
+                              </p>
                               
-                              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
-                                <div className="flex items-center gap-2">
-                                  <MapPin size={12} className="text-muted-foreground/60" />
-                                  <p className="font-bold text-xs text-foreground">
-                                    {opp.address_text || opp.city}
-                                  </p>
+                              <div className="flex items-center gap-2 mb-3 text-[11px] font-bold text-muted-foreground truncate">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <MapPin size={12} className="shrink-0 text-[#B8924A]/60" />
+                                  <span className="text-foreground truncate">{opp.city}</span>
                                 </div>
-
-                                <div className="flex items-center gap-2">
-                                  <Clock size={12} className="text-muted-foreground/60" />
-                                  <p className="font-bold text-xs text-foreground">{timeAgo}</p>
+                                <span className="shrink-0 opacity-30">•</span>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <User size={12} className="shrink-0 opacity-60" />
+                                  <span className="text-foreground truncate">{clientName}</span>
                                 </div>
                               </div>
 
-                              <div className="flex flex-wrap gap-1.5">
-                                {opp.tags?.slice(0, 3).map((tag: string) => (
-                                  <span key={tag} className="text-[8px] font-black uppercase tracking-widest bg-muted/40 text-muted-foreground/80 px-2.5 py-1 rounded-md border border-border/50">
-                                    {tag}
-                                  </span>
-                                ))}
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex gap-1 overflow-hidden">
+                                  {opp.tags?.slice(0, 2).map((tag: string) => (
+                                    <span key={tag} className="text-[9px] font-bold text-muted-foreground/70 bg-muted/30 px-2 py-0.5 rounded-md border border-border/50 whitespace-nowrap">
+                                      #{tag}
+                                    </span>
+                                  ))}
+                                </div>
+                                <Button 
+                                  variant="uber" 
+                                  size="sm" 
+                                  href={`/dashboard/provider/lead/${opp.id}`}
+                                  className="h-9 px-4 text-[11px] font-black uppercase tracking-widest shrink-0 rounded-xl"
+                                >
+                                  Ver Projeto
+                                  <ChevronRight size={14} className="ml-1" />
+                                </Button>
                               </div>
-                            </div>
-
-                            <div className="bg-muted/30 md:w-48 p-4 sm:p-6 flex flex-col justify-center gap-3 rounded-[1.5rem] m-2 border border-border/40">
-                              <Button 
-                                fullWidth 
-                                variant="uber" 
-                                size="sm" 
-                                href={`/dashboard/provider/lead/${opp.id}`}
-                                className="group/btn h-11 text-xs"
-                              >
-                                Ver projeto
-                                <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-                              </Button>
                             </div>
                           </div>
                         </CardContent>

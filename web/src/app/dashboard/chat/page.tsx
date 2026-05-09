@@ -694,9 +694,10 @@ function ChatContent() {
         sender_id: user.id,
         content: `[LOCATION]:${latitude},${longitude}`
       });
-    }, () => {
-      triggerToast('Erro ao obter localização');
-    });
+    }, (error) => {
+      console.error(`Geolocation Error: [Code ${error.code}] ${error.message} (Chat Page)`);
+      triggerToast('Erro ao obter localização. Verifique as permissões.');
+    }, { enableHighAccuracy: true, timeout: 15000 });
   };
 
   const activeChat = chats.find(c => c.id === selectedChatId);

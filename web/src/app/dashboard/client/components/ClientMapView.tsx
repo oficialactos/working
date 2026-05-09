@@ -147,10 +147,10 @@ export function ClientMapView() {
           sessionStorage.setItem('geo_requested_this_session', 'true');
         },
         (err) => {
-          console.log('Geolocation error:', err);
+          console.error(`Geolocation error: [Code ${err.code}] ${err.message} (MapView)`);
           sessionStorage.setItem('geo_requested_this_session', 'true'); // Don't nag if they denied or it failed
         },
-        { timeout: 10000, enableHighAccuracy: true }
+        { timeout: 15000, enableHighAccuracy: true, maximumAge: 300000 }
       );
     }
   }, []);

@@ -224,9 +224,13 @@ export default function NewRequestPage() {
         setCity('Lins, SP');
       }
     }, (error) => {
-      console.error('Geolocation error:', error);
+      console.error(`Geolocation error: [Code ${error.code}] ${error.message} (NewRequest)`);
       setAddress('Avenida Paulista, 1000');
       setCity('Bela Vista · São Paulo, SP');
+    }, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 60000
     });
   };
 
