@@ -15,9 +15,15 @@ export function ServiceWorker() {
         console.log('SW registrado com sucesso');
 
         // Check for updates when the window is focused
-        window.addEventListener('focus', () => {
-          reg.update();
-        });
+        const checkUpdate = () => {
+          console.log('Verificando atualizações...');
+          reg.update().catch(err => console.error('Erro ao buscar update:', err));
+        };
+
+        window.addEventListener('focus', checkUpdate);
+        
+        // Periodic check every 15 minutes
+        const interval = setInterval(checkUpdate, 15 * 60 * 1000);
 
         reg.addEventListener('updatefound', () => {
           const next = reg.installing;
@@ -36,6 +42,11 @@ export function ServiceWorker() {
             }
           });
         });
+
+        return () => {
+          window.removeEventListener('focus', checkUpdate);
+          clearInterval(interval);
+        };
       } catch (err) {
         console.error('Erro ao registrar SW:', err);
       }

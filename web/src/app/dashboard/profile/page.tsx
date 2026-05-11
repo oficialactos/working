@@ -280,12 +280,14 @@ export default function ProfilePage() {
         .upsert({ 
           id: session.user.id,
           avatar_url: publicUrl,
+          full_name: userData.name,
+          role: userData.role,
           updated_at: new Date().toISOString()
         });
 
       if (updateError) {
-        console.error('Erro crítico ao salvar no banco de dados:', updateError);
-        throw new Error('Não foi possível salvar a foto no seu perfil. Verifique sua conexão.');
+        console.error('Erro detalhado Supabase:', updateError.message, updateError.details, updateError.hint);
+        throw new Error(`Erro no banco de dados: ${updateError.message}`);
       }
 
       // 2. Atualiza nos metadados do Auth (Backup/Sessão)
