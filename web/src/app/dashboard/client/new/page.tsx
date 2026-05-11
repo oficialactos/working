@@ -360,8 +360,6 @@ export default function NewRequestPage() {
     canvas.height = cameraVideoRef.current.videoHeight;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
       ctx.drawImage(cameraVideoRef.current, 0, 0);
       setCapturedImage(canvas.toDataURL('image/jpeg', 0.8));
     }
@@ -992,7 +990,7 @@ export default function NewRequestPage() {
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover scale-x-[-1]"
+                    className="w-full h-full object-cover"
                   />
                   
                   {isRecordingCamera && (
