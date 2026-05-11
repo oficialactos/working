@@ -275,34 +275,41 @@ export default function ProfilePage() {
         .getPublicUrl(filePath);
 
       // 1. Atualiza na tabela profiles (Principal)
-      // Usamos update em vez de upsert para evitar problemas de RLS de 'new row'
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ 
-          avatar_url: publicUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', session.user.id);
-
-      if (updateError) {
-        console.warn('Erro ao atualizar profiles (DB), tentando upsert fallback:', updateError);
-        // Fallback: se o update não funcionou (ex: perfil não existe), tentamos upsert mas ignoramos erro de RLS
-        await supabase.from('profiles').upsert({
+        .upsert({ 
           id: session.user.id,
           avatar_url: publicUrl,
-          role: userData.role || 'client'
+          updated_at: new Date().toISOString()
         });
+
+      if (updateError) {
+        console.error('Erro crítico ao salvar no banco de dados:', updateError);
+        throw new Error('Não foi possível salvar a foto no seu perfil. Verifique sua conexão.');
       }
 
       // 2. Atualiza nos metadados do Auth (Backup/Sessão)
-      await supabase.auth.updateUser({
+      const { error: authError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl }
       });
 
-      setUserData(prev => ({ ...prev, avatar: publicUrl }));
+      if (authError) {
+        console.warn('Aviso: Erro ao atualizar metadados de sessão:', authError);
+      }
+
+      // 3. Atualiza o estado local com cache-busting para garantir que a imagem mude
+      const finalUrl = `${publicUrl}?t=${Date.now()}`;
+      setUserData(prev => ({ ...prev, avatar: finalUrl }));
+      
+      setNotif({
+        show: true,
+        type: 'success',
+        title: 'Foto Atualizada',
+        message: 'Sua nova foto de perfil foi salva permanentemente.'
+      });
     } catch (error: any) {
-      console.error('Erro detalhado:', error);
-      showError('Erro ao salvar foto', error.message);
+      console.error('Erro detalhado no upload:', error);
+      showError('Falha ao Salvar', error.message || 'Ocorreu um erro ao processar sua foto.');
     } finally {
       setUploading(false);
     }

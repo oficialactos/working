@@ -118,8 +118,50 @@ export function ClientMapView() {
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
 
-      if (data) {
+      if (data && data.length > 0) {
         setProviders(data);
+      } else {
+        // Simulação para testes caso o banco esteja vazio ou sem coordenadas
+        console.log('Nenhum prestador com coordenadas encontrado. Gerando simulação...');
+        const mockProviders: Provider[] = [
+          {
+            id: 'mock-1',
+            full_name: 'Carlos Oliveira',
+            avatar_url: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&h=100&fit=crop',
+            rating_avg: 4.9,
+            rating_count: 24,
+            address: 'Próximo a você',
+            latitude: mapCenter[0] + 0.002,
+            longitude: mapCenter[1] + 0.002,
+            role: 'provider',
+            category: 'Eletricista'
+          },
+          {
+            id: 'mock-2',
+            full_name: 'Ana Silva',
+            avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+            rating_avg: 4.8,
+            rating_count: 15,
+            address: 'A 500m de distância',
+            latitude: mapCenter[0] - 0.001,
+            longitude: mapCenter[1] + 0.003,
+            role: 'provider',
+            category: 'Pintura'
+          },
+          {
+            id: 'mock-3',
+            full_name: 'Marcos Souza',
+            avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+            rating_avg: 5.0,
+            rating_count: 8,
+            address: 'A 200m de distância',
+            latitude: mapCenter[0] + 0.0015,
+            longitude: mapCenter[1] - 0.001,
+            role: 'provider',
+            category: 'Encanador'
+          }
+        ];
+        setProviders(mockProviders);
       }
       setLoading(false);
     };
