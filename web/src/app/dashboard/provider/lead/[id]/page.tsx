@@ -375,7 +375,10 @@ export default function LeadDetailsPage() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {lead.media_urls.map((url: string, i: number) => {
-                  const isVideo = url.match(/\.(mp4|webm|ogg|mov)$/i);
+                  const isVideo = url.toLowerCase().includes('.mp4') || 
+                                  url.toLowerCase().includes('.mov') || 
+                                  url.toLowerCase().includes('.webm') || 
+                                  url.toLowerCase().includes('.ogg');
                   return (
                     <div 
                       key={i} 
@@ -384,7 +387,13 @@ export default function LeadDetailsPage() {
                     >
                       {isVideo ? (
                         <div className="w-full h-full relative">
-                          <video src={url} className="w-full h-full object-cover" />
+                          <video 
+                            src={url} 
+                            className="w-full h-full object-cover" 
+                            preload="metadata"
+                            muted
+                            playsInline
+                          />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                             <Zap size={20} className="text-white fill-white" />
                           </div>
@@ -591,11 +600,16 @@ export default function LeadDetailsPage() {
               className="relative max-w-5xl w-full max-h-full flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              {selectedMedia.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+              {(selectedMedia.toLowerCase().includes('.mp4') || 
+                selectedMedia.toLowerCase().includes('.mov') || 
+                selectedMedia.toLowerCase().includes('.webm') || 
+                selectedMedia.toLowerCase().includes('.ogg')) ? (
                 <video 
                   src={selectedMedia} 
                   controls 
                   autoPlay 
+                  playsInline
+                  preload="auto"
                   className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl"
                 />
               ) : (

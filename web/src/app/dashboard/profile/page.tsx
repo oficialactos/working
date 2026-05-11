@@ -197,6 +197,8 @@ export default function ProfilePage() {
       phone: editPhone,
       cep: editCep,
       address: editAddress,
+      latitude,
+      longitude,
       updated_at: new Date().toISOString()
     };
 

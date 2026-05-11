@@ -109,20 +109,17 @@ export function ClientMapView() {
 
   useEffect(() => {
     setMounted(true);
-    const fetchProviders = async () => {
+    const fetchProviders = async (center: [number, number]) => {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'provider')
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+        .eq('role', 'provider');
 
-      if (data && data.length > 0) {
-        setProviders(data);
+      if (data && data.some(p => p.latitude && p.longitude)) {
+        setProviders(data.filter(p => p.latitude && p.longitude));
       } else {
-        // Simulação para testes caso o banco esteja vazio ou sem coordenadas
-        console.log('Nenhum prestador com coordenadas encontrado. Gerando simulação...');
+        // Simulação baseada na localização ATUAL (Lins ou onde o usuário estiver)
         const mockProviders: Provider[] = [
           {
             id: 'mock-1',
@@ -131,8 +128,8 @@ export function ClientMapView() {
             rating_avg: 4.9,
             rating_count: 24,
             address: 'Próximo a você',
-            latitude: mapCenter[0] + 0.002,
-            longitude: mapCenter[1] + 0.002,
+            latitude: center[0] + 0.002,
+            longitude: center[1] + 0.002,
             role: 'provider',
             category: 'Eletricista'
           },
@@ -143,8 +140,8 @@ export function ClientMapView() {
             rating_avg: 4.8,
             rating_count: 15,
             address: 'A 500m de distância',
-            latitude: mapCenter[0] - 0.001,
-            longitude: mapCenter[1] + 0.003,
+            latitude: center[0] - 0.001,
+            longitude: center[1] + 0.003,
             role: 'provider',
             category: 'Pintura'
           },
@@ -155,8 +152,8 @@ export function ClientMapView() {
             rating_avg: 5.0,
             rating_count: 8,
             address: 'A 200m de distância',
-            latitude: mapCenter[0] + 0.0015,
-            longitude: mapCenter[1] - 0.001,
+            latitude: center[0] + 0.0015,
+            longitude: center[1] - 0.001,
             role: 'provider',
             category: 'Encanador'
           }
@@ -166,34 +163,20 @@ export function ClientMapView() {
       setLoading(false);
     };
 
-    fetchProviders();
-
-    // Geolocation logic: Try to use saved location first, only ask once per session
-    const lastLocation = localStorage.getItem('last_user_location');
-    if (lastLocation) {
-      try {
-        setMapCenter(JSON.parse(lastLocation));
-      } catch (e) {
-        console.error('Error parsing last location', e);
-      }
-    }
-
-    const alreadyRequested = sessionStorage.getItem('geo_requested_this_session');
-    if (navigator.geolocation && !alreadyRequested) {
+    // Geolocation logic
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const newCenter: [number, number] = [pos.coords.latitude, pos.coords.longitude];
           setMapCenter(newCenter);
           setUserLocation(newCenter);
-          localStorage.setItem('last_user_location', JSON.stringify(newCenter));
-          sessionStorage.setItem('geo_requested_this_session', 'true');
+          fetchProviders(newCenter); // Busca ou simula baseado na localização real
         },
-        (err) => {
-          console.error(`Geolocation error: [Code ${err.code}] ${err.message} (MapView)`);
-          sessionStorage.setItem('geo_requested_this_session', 'true'); // Don't nag if they denied or it failed
-        },
-        { timeout: 15000, enableHighAccuracy: true, maximumAge: 300000 }
+        () => fetchProviders(mapCenter),
+        { timeout: 15000, enableHighAccuracy: true }
       );
+    } else {
+      fetchProviders(mapCenter);
     }
   }, []);
 
