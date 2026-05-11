@@ -561,8 +561,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           {/* content */}
           <div
             className={cn(
-              "flex-1 no-scrollbar overflow-x-hidden",
-              (isChatOpen || pathname === '/dashboard/client' || isLeadPage) ? "p-0 overflow-hidden" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto"
+              "flex-1 no-scrollbar",
+              (isChatOpen || pathname === '/dashboard/client') ? "p-0 overflow-hidden" : (isLeadPage ? "p-0 overflow-y-auto" : "px-3 py-5 md:p-8 md:pb-8 overflow-y-auto")
             )}
             style={!(isChatOpen || pathname === '/dashboard/client') ? { paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' } : undefined}
           >

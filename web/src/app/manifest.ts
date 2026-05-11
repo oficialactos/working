@@ -9,5 +9,18 @@ export default function manifest(): MetadataRoute.Manifest {
     display: 'standalone',
     background_color: '#141B25',
     theme_color: '#141B25',
+    orientation: 'portrait',
+    scope: '/',
+    categories: ['productivity', 'business'],
+    shortcuts: [
+      {
+        name: 'Mensagens',
+        url: '/dashboard/chat',
+      },
+      {
+        name: 'Procurar Serviços',
+        url: '/dashboard/provider/feed',
+      }
+    ]
   };
 }
