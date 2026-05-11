@@ -7,38 +7,51 @@ export function ServiceWorker() {
   const [showUpdateNotif, setShowUpdateNotif] = useState(false);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
-      reg.addEventListener('updatefound', () => {
-        const next = reg.installing;
-        if (!next) return;
+    const registerSW = async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        console.log('SW registrado com sucesso');
 
-        next.addEventListener('statechange', () => {
-          if (next.state === 'activated' && navigator.serviceWorker.controller) {
-            if (process.env.NODE_ENV !== 'development') {
-              // Show notification instead of instant reload
+        // Check for updates when the window is focused
+        window.addEventListener('focus', () => {
+          reg.update();
+        });
+
+        reg.addEventListener('updatefound', () => {
+          const next = reg.installing;
+          if (!next) return;
+
+          next.addEventListener('statechange', () => {
+            // Trigger notification when the new SW is activated
+            if (next.state === 'activated' && navigator.serviceWorker.controller) {
+              console.log('Nova versão detectada e ativada!');
               setShowUpdateNotif(true);
               
-              // Reload after 3 seconds so user can see the message
+              // Auto reload after 5 seconds
               setTimeout(() => {
                 window.location.reload();
-              }, 4000);
+              }, 5000);
             }
-          }
+          });
         });
-      });
-    });
+      } catch (err) {
+        console.error('Erro ao registrar SW:', err);
+      }
+    };
+
+    registerSW();
   }, []);
 
   return (
     <Notification 
       show={showUpdateNotif}
       type="success"
-      title="Atualização Disponível"
-      message="Uma nova versão do sistema foi instalada. O app será reiniciado em instantes para aplicar as mudanças."
+      title="Sistema Atualizado"
+      message="Uma nova versão foi instalada com sucesso. O app será reiniciado em 5 segundos para aplicar as melhorias."
       onClose={() => setShowUpdateNotif(false)}
-      duration={0} // Keep visible until reload
+      duration={0}
     />
   );
 }

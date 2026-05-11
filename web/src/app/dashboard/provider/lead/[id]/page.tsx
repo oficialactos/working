@@ -322,7 +322,7 @@ export default function LeadDetailsPage() {
   const timeAgo = formatDistanceToNow(new Date(lead.created_at), { locale: ptBR, addSuffix: true });
 
   return (
-    <div className="w-full pb-20 px-4 md:px-10">
+    <div className="w-full pb-32 px-4 md:px-10">
       {/* Top Bar / Navigation */}
       <nav className="py-6 flex items-center justify-between mb-8">
         <button 
