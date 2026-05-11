@@ -195,20 +195,29 @@ export function ClientMapView() {
           
           const providerIcon = L.divIcon({
             html: `
-              <div class="relative flex items-center justify-center transition-all duration-300 ${isSelected ? 'scale-125 z-50' : 'hover:scale-110'}">
-                <div class="relative w-12 h-12 rounded-2xl overflow-hidden border-2 shadow-xl ${isSelected ? 'border-[#B8924A]' : 'border-background'}">
+              <div class="relative flex items-center justify-center transition-all duration-500 ${isSelected ? 'scale-125 z-50' : 'hover:scale-110'}">
+                <!-- Golden Pulse Ring -->
+                <div class="absolute w-14 h-14 bg-[#B8924A]/20 rounded-2xl animate-pulse blur-[2px]"></div>
+                <div class="absolute w-10 h-10 bg-[#B8924A]/30 rounded-full animate-ping blur-[4px]"></div>
+                
+                <!-- Main Avatar Card -->
+                <div class="relative w-12 h-12 rounded-2xl overflow-hidden border-2 shadow-[0_8px_16px_rgba(184,146,74,0.3)] ${isSelected ? 'border-[#B8924A] ring-4 ring-[#B8924A]/20' : 'border-background'} bg-card">
                   ${p.avatar_url ? 
                     `<img src="${p.avatar_url}" class="w-full h-full object-cover" />` : 
-                    `<div class="w-full h-full bg-muted flex items-center justify-center text-muted-foreground font-black text-xs">${p.full_name.charAt(0)}</div>`
+                    `<div class="w-full h-full bg-[#B8924A]/10 flex items-center justify-center text-[#B8924A] font-black text-xs">${p.full_name.charAt(0)}</div>`
                   }
-                  <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full"></div>
+                  
+                  <!-- Status Indicator -->
+                  <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-background rounded-full shadow-sm"></div>
                 </div>
-                <div class="absolute -bottom-1 w-3 h-3 bg-background rotate-45 border-r border-b border-border/10 -z-10"></div>
+
+                <!-- Pin Tip -->
+                <div class="absolute -bottom-1.5 w-4 h-4 bg-background rotate-45 border-r border-b border-border/20 shadow-md -z-10"></div>
               </div>
             `,
-            className: 'provider-marker',
-            iconSize: [48, 48],
-            iconAnchor: [24, 52]
+            className: 'provider-marker-container',
+            iconSize: [56, 56],
+            iconAnchor: [28, 60]
           });
 
           return (
@@ -387,7 +396,7 @@ export function ClientMapView() {
           80%, 100% { transform: scale(1.5); opacity: 0; }
         }
         
-        .user-location-icon {
+        .user-location-icon, .provider-marker-container {
           background: transparent !important;
           border: none !important;
         }
