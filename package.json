@@ -1,0 +1,19 @@
+{
+  "name": "actos-working",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "build": "npm --prefix web run build",
+    "dev": "npm --prefix web run dev",
+    "install:web": "npm --prefix web install",
+    "start": "npm --prefix web run start"
+  },
+  "dependencies": {
+    "next": "^16.2.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  }
+}
