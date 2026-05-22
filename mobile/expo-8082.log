@@ -1,0 +1,800 @@
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY
+Starting project at E:\Actos\Saas\working\mobile
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8082
+Logs for your project will appear below.
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web .\index.js ░░░░░░░░░░░░░░░░  1.0% (1/1)
+Web .\index.js ▓▓▓▓▓▓░░░░░░░░░░ 37.9% ( 44/149)
+Web .\index.js ▓▓▓▓▓▓░░░░░░░░░░ 37.9% (159/321)
+Web .\index.js ▓▓▓▓▓▓▓░░░░░░░░░ 44.1% (341/547)
+Web .\index.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.2% (505/726)
+Web .\index.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 76.0% (775/889)
+Web .\index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.3% ( 961/1079)
+Web .\index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 87.6% (1137/1230)
+Web .\index.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 97.0% (1334/1356)
+Web Bundled 37811ms index.js (1436 modules)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 119ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 248ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 174ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 224ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 249ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 103ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\(tabs)\profile.tsx: Identifier 'AvatarOptionsModal' has already been declared. (492:9)
+
+  490 | }
+  491 |
+> 492 | function AvatarOptionsModal({
+      |          ^
+  493 |   hasAvatar,
+  494 |   onChange,
+  495 |   onClose,
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptScopeHandler.checkRedeclarationInScope (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:1619:19)
+    at TypeScriptScopeHandler.declareName (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:1585:12)
+    at TypeScriptScopeHandler.declareName (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4892:11)
+    at TypeScriptParserMixin.registerFunctionStatementId (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13483:16)
+    at TypeScriptParserMixin.registerFunctionStatementId (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9195:13)
+    at TypeScriptParserMixin.parseFunction (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13467:12)
+    at TypeScriptParserMixin.parseFunctionStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13142:17)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12808:21)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseModuleItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12761:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:36)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseProgram (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12639:10)
+    at TypeScriptParserMixin.parseTopLevel (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12629:25)
+    at TypeScriptParserMixin.parse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:14505:25)
+    at TypeScriptParserMixin.parse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10143:18)
+    at parse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:14518:26)
+    at parser (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\parser\index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\transformation\index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\transform.js:22:33)
+    at transform.next (<anonymous>)
+    at evaluateSync (E:\Actos\Saas\working\mobile\node_modules\gensync\index.js:251:28)
+    at sync (E:\Actos\Saas\working\mobile\node_modules\gensync\index.js:89:14)
+    at stopHiding - secret - don't use this - v1 (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\errors\rewrite-stack-trace.js:47:12)
+    at Object.transformSync (E:\Actos\Saas\working\mobile\node_modules\@babel\core\lib\transform.js:40:76)
+    at parseWithBabel (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\transformSync.js:75:18)
+    at transformSync (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\transformSync.js:54:16)
+    at Object.transform (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\babel-transformer.js:127:58)
+    at transformJSWithBabel (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\transform-worker\metro-transform-worker.js:468:47)
+    at Object.transform (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\transform-worker\metro-transform-worker.js:583:12)
+    at Object.transform (E:\Actos\Saas\working\mobile\node_modules\@expo\metro-config\build\transform-worker\transform-worker.js:178:19)
+    at transformFile (E:\Actos\Saas\working\mobile\node_modules\metro\src\DeltaBundler\Worker.flow.js:67:36)
+    at Object.transform (E:\Actos\Saas\working\mobile\node_modules\metro\src\DeltaBundler\Worker.flow.js:42:10)
+    at execFunction (E:\Actos\Saas\working\mobile\node_modules\jest-worker\build\workers\processChild.js:149:17)
+    at execHelper (E:\Actos\Saas\working\mobile\node_modules\jest-worker\build\workers\processChild.js:137:5)
+    at execMethod (E:\Actos\Saas\working\mobile\node_modules\jest-worker\build\workers\processChild.js:140:5)
+    at process.messageListener (E:\Actos\Saas\working\mobile\node_modules\jest-worker\build\workers\processChild.js:44:7)
+    at process.emit (node:events:518:28)
+    at emit (node:internal/child_process:951:14)
+    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 273ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 108ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 247ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 89ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 191ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 162ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 187ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 164ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 209ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\(tabs)\profile.tsx: Expected corresponding JSX closing tag for <Pressable>. (471:16)
+
+  469 |                     Salvar alterações
+  470 |                   </Button>
+> 471 |                 </View>
+      |                 ^
+  472 |               )}
+  473 |             </Card>
+  474 |
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4739:16)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:39
+    at TypeScriptParserMixin.tryParse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6924:20)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:18)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12510:17)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11692:28)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10910:29)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseExpressionBase (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10801:23)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:17)
+    at TypeScriptParserMixin.jsxParseExpressionContainer (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4644:31)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4723:36)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\(tabs)\profile.tsx: Expected corresponding JSX closing tag for <Pressable>. (442:20)
+
+  440 |                   </View>
+  441 |
+> 442 |                     </View>
+      |                     ^
+  443 |                     <Ionicons name={detailsOpen ? "chevron-up" : "chevron-down"} size={24} color={colors.gold} />
+  444 |                   </Pressable>
+  445 |
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4739:16)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:39
+    at TypeScriptParserMixin.tryParse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6924:20)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:18)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12510:17)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11692:28)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10910:29)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseExpressionBase (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10801:23)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:17)
+    at TypeScriptParserMixin.jsxParseExpressionContainer (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4644:31)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4723:36)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\(tabs)\profile.tsx: Expected corresponding JSX closing tag for <Pressable>. (442:20)
+
+  440 |                   </View>
+  441 |
+> 442 |                     </View>
+      |                     ^
+  443 |                     <Ionicons name={detailsOpen ? "chevron-up" : "chevron-down"} size={24} color={colors.gold} />
+  444 |                   </Pressable>
+  445 |
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4739:16)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:39
+    at TypeScriptParserMixin.tryParse (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6924:20)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9792:18)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12510:17)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11692:28)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10910:29)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseExpressionBase (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10801:23)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10797:17)
+    at TypeScriptParserMixin.jsxParseExpressionContainer (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4644:31)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4723:36)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElementAt (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4710:32)
+    at TypeScriptParserMixin.jsxParseElement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4761:17)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4771:19)
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 185ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\auth.tsx: Unexpected token, expected ":" (321:50)
+
+  319 |
+  320 |   const validateStep = () => {
+> 321 |     const value = values[currentField]?.trim() ?"";
+      |                                                   ^
+  322 |
+  323 |     if (currentQuestion.required && !value) {
+  324 |       setMessage("Responda esta pergunta para continuar.");
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\auth.tsx: Unexpected token, expected ":" (321:50)
+
+  319 |
+  320 |   const validateStep = () => {
+> 321 |     const value = values[currentField]?.trim() ?"";
+      |                                                   ^
+  322 |
+  323 |     if (currentQuestion.required && !value) {
+  324 |       setMessage("Responda esta pergunta para continuar.");
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\auth.tsx: Unexpected token, expected ":" (321:50)
+
+  319 |
+  320 |   const validateStep = () => {
+> 321 |     const value = values[currentField]?.trim() ?"";
+      |                                                   ^
+  322 |
+  323 |     if (currentQuestion.required && !value) {
+  324 |       setMessage("Responda esta pergunta para continuar.");
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\auth.tsx: Unexpected token, expected ":" (321:50)
+
+  319 |
+  320 |   const validateStep = () => {
+> 321 |     const value = values[currentField]?.trim() ?"";
+      |                                                   ^
+  322 |
+  323 |     if (currentQuestion.required && !value) {
+  324 |       setMessage("Responda esta pergunta para continuar.");
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\auth.tsx: Unexpected token, expected ":" (321:50)
+
+  319 |
+  320 |   const validateStep = () => {
+> 321 |     const value = values[currentField]?.trim() ?"";
+      |                                                   ^
+  322 |
+  323 |     if (currentQuestion.required && !value) {
+  324 |       setMessage("Responda esta pergunta para continuar.");
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12438:16)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseVar (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13401:91)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13247:10)
+    at TypeScriptParserMixin.parseVarStatement (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9425:31)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12868:23)
+    at TypeScriptParserMixin.parseStatementContent (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9525:18)
+    at TypeScriptParserMixin.parseStatementLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12784:17)
+    at TypeScriptParserMixin.parseStatementListItem (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12764:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13333:61)
+    at TypeScriptParserMixin.parseBlockBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13326:10)
+    at TypeScriptParserMixin.parseBlock (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:13314:10)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12117:24)
+ ERROR  SyntaxError: E:\Actos\Saas\working\mobile\app\(tabs)\client.tsx: Unexpected token, expected ":" (160:35)
+
+  158 |       ...assets.map((asset) => ({
+  159 |         fileName: asset.fileName,
+> 160 |         type: asset.type ?undefined,
+      |                                    ^
+  161 |         uri: asset.uri
+  162 |       }))
+  163 |     ]);
+    at constructor (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:365:19)
+    at TypeScriptParserMixin.raise (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6616:19)
+    at TypeScriptParserMixin.unexpected (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6636:16)
+    at TypeScriptParserMixin.expect (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:6916:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10909:12)
+    at TypeScriptParserMixin.parseConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9620:18)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10902:17)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12510:17)
+    at TypeScriptParserMixin.parseObjectProperty (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11967:83)
+    at TypeScriptParserMixin.parseObjPropValue (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11995:100)
+    at TypeScriptParserMixin.parseObjPropValue (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9761:18)
+    at TypeScriptParserMixin.parsePropertyDefinition (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11932:17)
+    at TypeScriptParserMixin.parseObjectLike (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11849:21)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11356:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:39
+    at TypeScriptParserMixin.allowInAnd (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12443:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10817:17)
+    at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12510:17)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11692:28)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+    at TypeScriptParserMixin.parseExprSubscripts (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11098:23)
+    at TypeScriptParserMixin.parseUpdate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11083:21)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11063:23)
+    at TypeScriptParserMixin.parseMaybeUnary (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9854:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10916:61)
+    at TypeScriptParserMixin.parseExprOps (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10921:23)
+    at TypeScriptParserMixin.parseMaybeConditional (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10898:23)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:10848:21)
+    at TypeScriptParserMixin.parseMaybeAssign (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:9803:20)
+    at TypeScriptParserMixin.parseFunctionBody (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12110:24)
+    at TypeScriptParserMixin.parseArrowExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:12092:10)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11704:12)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:11348:23)
+    at TypeScriptParserMixin.parseExprAtom (E:\Actos\Saas\working\mobile\node_modules\@babel\parser\lib\index.js:4776:20)
+Unable to resolve "expo-câmera" from "app\(tabs)\client.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { [33mCameraView[39m[33m,[39m useCameraPermissions[33m,[39m type [33mCameraMode[39m[33m,[39m type [33mCameraType[39m } [36mfrom[39m [32m"expo-câmera"[39m[33m;[39m
+ [90m   |[39m                                                                                     [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mImagePicker[39m [36mfrom[39m [32m"expo-image-picker"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mLocation[39m [36mfrom[39m [32m"expo-location"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { [33mImage[39m } [36mfrom[39m [32m"expo-image"[39m[33m;[39m[0m
+
+Import stack:
+
+ app\(tabs)\client.tsx
+ | import "expo-câmera"
+
+ app (require.context)
+
+Unable to resolve "expo-câmera" from "app\(tabs)\client.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { [33mCameraView[39m[33m,[39m useCameraPermissions[33m,[39m type [33mCameraMode[39m[33m,[39m type [33mCameraType[39m } [36mfrom[39m [32m"expo-câmera"[39m[33m;[39m
+ [90m   |[39m                                                                                     [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mImagePicker[39m [36mfrom[39m [32m"expo-image-picker"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mLocation[39m [36mfrom[39m [32m"expo-location"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { [33mImage[39m } [36mfrom[39m [32m"expo-image"[39m[33m;[39m[0m
+
+Import stack:
+
+ app\(tabs)\client.tsx
+ | import "expo-câmera"
+
+ app (require.context)
+
+Unable to resolve "expo-câmera" from "app\(tabs)\client.tsx"
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { [33mCameraView[39m[33m,[39m useCameraPermissions[33m,[39m type [33mCameraMode[39m[33m,[39m type [33mCameraType[39m } [36mfrom[39m [32m"expo-câmera"[39m[33m;[39m
+ [90m   |[39m                                                                                     [31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mImagePicker[39m [36mfrom[39m [32m"expo-image-picker"[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mLocation[39m [36mfrom[39m [32m"expo-location"[39m[33m;[39m
+ [90m 4 |[39m [36mimport[39m { [33mImage[39m } [36mfrom[39m [32m"expo-image"[39m[33m;[39m[0m
+
+Import stack:
+
+ app\(tabs)\client.tsx
+ | import "expo-câmera"
+
+ app (require.context)
+
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 192ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 210ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 151ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 168ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 292ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 235ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 237ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 212ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 192ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 105ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 167ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 92ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 164ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 85ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 258ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Unable to resolve "@/components/request-card" from "app\(tabs)\requests.tsx"
+[0m [90m 2 |[39m [36mimport[39m { [33mActivityIndicator[39m[33m,[39m [33mRefreshControl[39m[33m,[39m [33mScrollView[39m[33m,[39m [33mText[39m[33m,[39m [33mView[39m } [36mfrom[39m [32m"react-native"[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mRequestCard[39m[33m,[39m type [33mServiceRequest[39m } [36mfrom[39m [32m"@/components/request-card"[39m[33m;[39m
+ [90m   |[39m                                                   [31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { [33mBody[39m[33m,[39m [33mCard[39m[33m,[39m [33mScreen[39m[33m,[39m [33mTitle[39m } [36mfrom[39m [32m"@/components/ui"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useAuth } [36mfrom[39m [32m"@/context/auth"[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m { colors } [36mfrom[39m [32m"@/lib/theme"[39m[33m;[39m[0m
+
+Import stack:
+
+ app\(tabs)\requests.tsx
+ | import "@/components/request-card"
+
+ app (require.context)
+
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 411ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Unable to resolve "@/components/request-card" from "app\(tabs)\requests.tsx"
+[0m [90m 2 |[39m [36mimport[39m { [33mActivityIndicator[39m[33m,[39m [33mRefreshControl[39m[33m,[39m [33mScrollView[39m[33m,[39m [33mText[39m[33m,[39m useWindowDimensions[33m,[39m [33mView[39m } [36mfrom[39m [32m"react-native"[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mRequestCard[39m[33m,[39m type [33mServiceRequest[39m } [36mfrom[39m [32m"@/components/request-card"[39m[33m;[39m
+ [90m   |[39m                                                   [31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { [33mBody[39m[33m,[39m [33mCard[39m[33m,[39m [33mScreen[39m[33m,[39m [33mTitle[39m } [36mfrom[39m [32m"@/components/ui"[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useAuth } [36mfrom[39m [32m"@/context/auth"[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m { colors } [36mfrom[39m [32m"@/lib/theme"[39m[33m;[39m[0m
+
+Import stack:
+
+ app\(tabs)\requests.tsx
+ | import "@/components/request-card"
+
+ app (require.context)
+
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 219ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 223ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 104ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 211ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 167ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 88ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 280ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+Web .\index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 234ms index.js (1 module)
+ LOG  [web] Logs will appear in the browser console

@@ -48,7 +48,12 @@ export default function ProfilePage() {
     cep: '',
     address: '',
     createdAt: '',
-    stats: { active: 0, total: 0, rating: 0, ratingCount: 0, earnings: 0 }
+    stats: { active: 0, total: 0, rating: 0, ratingCount: 0, earnings: 0 },
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    state: ''
   });
   const [loading, setLoading] = useState(true);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -97,7 +102,11 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editCep, setEditCep] = useState('');
-  const [editAddress, setEditAddress] = useState('');
+  const [editStreet, setEditStreet] = useState('');
+  const [editNumber, setEditNumber] = useState('');
+  const [editNeighborhood, setEditNeighborhood] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editState, setEditState] = useState('');
   const [saving, setSaving] = useState(false);
   const [isFetchingCep, setIsFetchingCep] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -146,13 +155,27 @@ export default function ProfilePage() {
         stats.total = proposalsCount || 0;
       }
 
+      setEditName(profile?.full_name || user.user_metadata?.full_name || '');
+      setEditPhone(profile?.phone || user.user_metadata?.phone || '');
+      setEditCep(profile?.cep || user.user_metadata?.cep || '');
+      setEditStreet(profile?.street || '');
+      setEditNumber(profile?.number || '');
+      setEditNeighborhood(profile?.neighborhood || '');
+      setEditCity(profile?.city || '');
+      setEditState(profile?.state || '');
+      
       setUserData({
         name: profile?.full_name || user.user_metadata?.full_name || 'Usuário',
         role: role as 'client' | 'provider',
         avatar: profile?.avatar_url || user.user_metadata?.avatar_url || '',
         phone: profile?.phone || user.user_metadata?.phone || '',
         cep: profile?.cep || user.user_metadata?.cep || '',
-        address: profile?.address || user.user_metadata?.address || '',
+        address: profile?.address || '',
+        street: profile?.street || '',
+        number: profile?.number || '',
+        neighborhood: profile?.neighborhood || '',
+        city: profile?.city || '',
+        state: profile?.state || '',
         createdAt: user.created_at,
         stats: {
           ...stats,
@@ -160,11 +183,6 @@ export default function ProfilePage() {
           ratingCount: profile?.rating_count || 0
         }
       });
-      
-      setEditName(profile?.full_name || user.user_metadata?.full_name || '');
-      setEditPhone(profile?.phone || user.user_metadata?.phone || '');
-      setEditCep(profile?.cep || user.user_metadata?.cep || '');
-      setEditAddress(profile?.address || user.user_metadata?.address || '');
       setLoading(false);
     };
 
@@ -173,83 +191,112 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-    let latitude = null;
-    let longitude = null;
+      let latitude = null;
+      let longitude = null;
 
-    if (editAddress) {
-      try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(editAddress)}`);
-        const geoData = await geoRes.json();
-        if (geoData && geoData.length > 0) {
-          latitude = parseFloat(geoData[0].lat);
-          longitude = parseFloat(geoData[0].lon);
+      const fullAddress = `${editStreet}, ${editNumber} - ${editNeighborhood}, ${editCity} - ${editState}`;
+      
+      if (fullAddress) {
+        try {
+          // Nominatim requer um User-Agent para evitar bloqueios
+          const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress + ' ' + editCep)}`, {
+            headers: {
+              'User-Agent': 'Working-App-Geocoding'
+            }
+          });
+          const geoData = await geoRes.json();
+          if (geoData && geoData.length > 0) {
+            latitude = parseFloat(geoData[0].lat);
+            longitude = parseFloat(geoData[0].lon);
+          }
+        } catch (err) {
+          console.warn('Aviso: Geolocalização falhou, mas continuaremos salvando:', err);
         }
-      } catch (err) {
-        console.error('Geocoding error:', err);
       }
-    }
 
-    const payload = {
-      full_name: editName,
-      phone: editPhone,
-      cep: editCep,
-      address: editAddress,
-      latitude,
-      longitude,
-      updated_at: new Date().toISOString()
-    };
-
-    // 1. Primeiro atualizamos os metadados do Auth.
-    // Isso é garantido que funcione para o usuário logado e serve como nossa fonte de verdade fallback.
-    const { error: authError } = await supabase.auth.updateUser({
-      data: {
+      const payload = {
         full_name: editName,
         phone: editPhone,
         cep: editCep,
-        address: editAddress
-      }
-    });
+        street: editStreet,
+        number: editNumber,
+        neighborhood: editNeighborhood,
+        city: editCity,
+        state: editState,
+        address: fullAddress,
+        latitude,
+        longitude,
+        updated_at: new Date().toISOString()
+      };
 
-    if (authError) {
-      showError('Erro ao atualizar autenticação', authError.message);
-      setSaving(false);
-      return;
-    }
-
-    // 2. Tentamos atualizar a tabela profiles. 
-    // Se falhar por RLS, não bloqueamos o usuário, pois os dados já estão no Auth.
-    const { error: dbError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: session.user.id,
-        role: userData.role || 'client',
-        ...payload
+      // 1. Atualiza metadados do Auth
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: editName,
+          phone: editPhone,
+          cep: editCep,
+          street: editStreet,
+          number: editNumber,
+          neighborhood: editNeighborhood,
+          city: editCity,
+          state: editState,
+          address: fullAddress
+        }
       });
 
-    if (dbError) {
-      console.warn('Erro de DB (Profiles) ignorado devido ao sucesso no Auth:', dbError);
-      // Opcionalmente mostramos uma notificação de aviso, mas não um erro fatal.
+      if (authError) throw authError;
+
+      // 2. Atualiza tabela profiles
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: session.user.id,
+          role: userData.role || 'client',
+          ...payload
+        });
+
+      if (dbError) {
+        console.warn('Erro de DB ignorado devido ao sucesso no Auth:', dbError);
+      }
+
+      setUserData(prev => ({ 
+        ...prev, 
+        name: editName,
+        phone: editPhone,
+        cep: editCep,
+        street: editStreet,
+        number: editNumber,
+        neighborhood: editNeighborhood,
+        city: editCity,
+        state: editState,
+        address: fullAddress
+      }));
+      
+      setIsEditing(false);
+      
+      setNotif({
+        show: true,
+        type: 'success',
+        title: '✅ SUCESSO',
+        message: 'Suas informações foram salvas.'
+      });
+
+      router.refresh();
+    } catch (err: any) {
+      console.error('Erro ao salvar perfil:', err);
+      setNotif({
+        show: true,
+        type: 'error',
+        title: 'ERRO AO SALVAR',
+        message: err.message || 'Verifique sua conexão e tente novamente.'
+      });
+    } finally {
+      setSaving(false);
     }
-
-    setNotif({
-      show: true,
-      type: 'success',
-      title: '✅ PERFIL ATUALIZADO',
-      message: 'Suas informações foram salvas com sucesso.'
-    });
-
-    setUserData(prev => ({ 
-      ...prev, 
-      name: editName,
-      phone: editPhone,
-      cep: editCep,
-      address: editAddress
-    }));
-    setIsEditing(false);
-    setSaving(false);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -430,33 +477,59 @@ export default function ProfilePage() {
                     <label className="text-xs font-bold text-muted-foreground px-1">Telefone</label>
                     <input value={editPhone} onChange={(e) => setEditPhone(formatPhone(e.target.value))} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="(00) 00000-0000" />
                   </div>
-                  <div className="flex gap-4">
-                    <div className="space-y-1.5 w-1/3">
-                      <label className="text-xs font-bold text-muted-foreground px-1">CEP</label>
-                      <div className="relative">
-                        <input 
-                          value={editCep}
-                          onChange={async (e) => {
-                            const val = formatCEP(e.target.value);
-                            setEditCep(val);
-                            if (val.length === 9) {
-                              setIsFetchingCep(true);
-                              try {
-                                const res = await fetch(`https://viacep.com.br/ws/${val.replace('-', '')}/json/`);
-                                const data = await res.json();
-                                if (!data.erro) setEditAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
-                              } catch (err) {} finally { setIsFetchingCep(false); }
-                            }
-                          }}
-                          className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none"
-                          placeholder="00000-000"
-                        />
-                        {isFetchingCep && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-3 h-3 border-2 border-[#B8924A] border-t-transparent rounded-full animate-spin" /></div>}
-                      </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground px-1">CEP</label>
+                    <div className="relative">
+                      <input 
+                        value={editCep}
+                        onChange={async (e) => {
+                          const val = formatCEP(e.target.value);
+                          setEditCep(val);
+                          if (val.length === 9) {
+                            setIsFetchingCep(true);
+                            try {
+                              const res = await fetch(`https://viacep.com.br/ws/${val.replace('-', '')}/json/`);
+                              const data = await res.json();
+                              if (!data.erro) {
+                                setEditStreet(data.logradouro);
+                                setEditNeighborhood(data.bairro);
+                                setEditCity(data.localidade);
+                                setEditState(data.uf);
+                              }
+                            } catch (err) {} finally { setIsFetchingCep(false); }
+                          }
+                        }}
+                        className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none"
+                        placeholder="00000-000"
+                      />
+                      {isFetchingCep && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-3 h-3 border-2 border-[#B8924A] border-t-transparent rounded-full animate-spin" /></div>}
                     </div>
-                    <div className="space-y-1.5 flex-1">
-                      <label className="text-xs font-bold text-muted-foreground px-1">Endereço</label>
-                      <input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Rua, Número..." />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-muted-foreground px-1">Logradouro</label>
+                    <input value={editStreet} onChange={(e) => setEditStreet(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Rua..." />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground px-1">Número</label>
+                      <input value={editNumber} onChange={(e) => setEditNumber(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="123" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground px-1">Bairro</label>
+                      <input value={editNeighborhood} onChange={(e) => setEditNeighborhood(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Bairro" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground px-1">Cidade</label>
+                      <input value={editCity} onChange={(e) => setEditCity(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground px-1">UF</label>
+                      <input value={editState} onChange={(e) => setEditState(e.target.value)} className="w-full bg-muted/50 border border-border h-12 rounded-xl text-sm font-medium text-foreground px-4 focus:border-[#B8924A]/50 transition-all outline-none" />
                     </div>
                   </div>
                 </div>
@@ -721,7 +794,7 @@ export default function ProfilePage() {
                 </div>
               </div>
  
-              <div className="grid grid-cols-3 gap-6">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground px-1">CEP</label>
                   <input 
@@ -734,7 +807,12 @@ export default function ProfilePage() {
                         try {
                           const res = await fetch(`https://viacep.com.br/ws/${val.replace('-', '')}/json/`);
                           const data = await res.json();
-                          if (!data.erro) setEditAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
+                          if (!data.erro) {
+                            setEditStreet(data.logradouro);
+                            setEditNeighborhood(data.bairro);
+                            setEditCity(data.localidade);
+                            setEditState(data.uf);
+                          }
                         } catch (err) {} finally { setIsFetchingCep(false); }
                       }
                     }}
@@ -742,9 +820,27 @@ export default function ProfilePage() {
                     placeholder="00000-000"
                   />
                 </div>
-                <div className="col-span-2 space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground px-1">Endereço Completo</label>
-                  <input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" placeholder="Rua, Número..." />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Logradouro (Rua/Av)</label>
+                  <input value={editStreet} onChange={(e) => setEditStreet(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Número</label>
+                  <input value={editNumber} onChange={(e) => setEditNumber(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Bairro</label>
+                  <input value={editNeighborhood} onChange={(e) => setEditNeighborhood(e.target.value)} className="w-full bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground px-1">Cidade / UF</label>
+                  <div className="flex gap-2">
+                    <input value={editCity} onChange={(e) => setEditCity(e.target.value)} className="flex-1 bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                    <input value={editState} onChange={(e) => setEditState(e.target.value)} className="w-20 bg-muted/50 border border-border h-14 rounded-xl text-sm font-medium text-foreground px-5 focus:border-[#B8924A]/50 transition-all outline-none" />
+                  </div>
                 </div>
               </div>
  

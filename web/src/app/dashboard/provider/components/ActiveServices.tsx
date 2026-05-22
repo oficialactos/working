@@ -25,16 +25,28 @@ export const ActiveServices = () => {
         .from('service_requests')
         .select(`
           *,
-          proposals!inner(status, provider_id),
-          chats(id)
+          proposals!inner(status, provider_id)
         `)
         .eq('status', 'in_progress')
         .eq('proposals.provider_id', session.user.id)
         .eq('proposals.status', 'accepted')
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (!error && data) {
-        setServices(data);
+        // Busca os chats separadamente para evitar erro de join complexo
+        const serviceIds = data.map(s => s.id);
+        const { data: chatsData } = await supabase
+          .from('chats')
+          .select('id, request_id')
+          .in('request_id', serviceIds)
+          .eq('provider_id', session.user.id);
+
+        const enrichedServices = data.map(service => ({
+          ...service,
+          chats: chatsData?.filter(c => c.request_id === service.id) || []
+        }));
+
+        setServices(enrichedServices);
       }
       setLoading(false);
     };

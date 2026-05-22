@@ -285,7 +285,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.label}
@@ -297,10 +297,10 @@ export default function Home() {
                 <div
                   onClick={() => router.push('/auth?mode=login')}
                   className={cn(
-                    'group cursor-pointer aspect-square flex flex-col items-center justify-center gap-5 rounded-3xl',
-                    'border border-foreground/[0.05] bg-foreground/[0.02] transition-all duration-500 p-6 relative overflow-hidden',
-                    'hover:border-[#B8924A]/30 hover:bg-foreground/[0.04] hover:-translate-y-1',
-                    'hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5),0_0_20px_rgba(184,146,74,0.1)]',
+                    'group cursor-pointer aspect-square flex flex-col items-center justify-center gap-3.5 rounded-2xl',
+                    'border border-foreground/[0.05] bg-foreground/[0.02] transition-all duration-500 p-4 relative overflow-hidden',
+                    'hover:border-[#B8924A]/30 hover:bg-foreground/[0.04] hover:-translate-y-0.5',
+                    'hover:shadow-[0_12px_24px_-10px_rgba(0,0,0,0.5),0_0_15px_rgba(184,146,74,0.08)]',
                   )}
                 >
                   {/* subtle gradient glow on hover */}
@@ -310,22 +310,22 @@ export default function Home() {
                   )} />
                   
                   {/* icon container */}
-                  <div className="relative z-10 w-14 h-14 rounded-2xl bg-foreground/[0.03] border border-foreground/[0.05] flex items-center justify-center group-hover:scale-110 group-hover:border-[#B8924A]/30 transition-all duration-500">
+                  <div className="relative z-10 w-11 h-11 rounded-xl bg-foreground/[0.03] border border-foreground/[0.05] flex items-center justify-center group-hover:scale-105 group-hover:border-[#B8924A]/30 transition-all duration-500">
                     <cat.icon 
-                      size={24} 
+                      size={20} 
                       className="transition-all duration-500" 
                       style={{ color: cat.color }} 
                     />
                     {/* icon glow */}
                     <div 
-                      className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 rounded-full"
+                      className="absolute inset-0 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-500 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
                   </div>
 
                   <div className="text-center relative z-10">
                     <h4 className="text-sm font-black text-foreground tracking-tight">{cat.label}</h4>
-                    <p className="text-[10px] font-bold text-foreground/20 group-hover:text-foreground/40 mt-1 uppercase tracking-widest">
+                    <p className="text-[8px] font-bold text-foreground/20 group-hover:text-foreground/40 mt-0.5 uppercase tracking-widest">
                       {cat.items} profissionais
                     </p>
                   </div>

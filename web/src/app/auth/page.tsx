@@ -43,7 +43,11 @@ function AuthContent() {
   const [emailSent, setEmailSent] = useState(false);
   const [phone, setPhone] = useState('');
   const [cep, setCep] = useState('');
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [number, setNumber] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
 
   const maskCnpj = (value: string) =>
     value
@@ -84,7 +88,10 @@ function AuthContent() {
         const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
         const data = await res.json();
         if (!data.erro) {
-          setAddress(`${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`);
+          setStreet(data.logradouro || '');
+          setNeighborhood(data.bairro || '');
+          setCity(data.localidade || '');
+          setState(data.uf || '');
         }
       } catch {
         // silent
@@ -152,7 +159,12 @@ function AuthContent() {
               role: role,
               phone: phone,
               cep: cep,
-              address: address,
+              street: street,
+              number: number,
+              neighborhood: neighborhood,
+              city: city,
+              state: state,
+              address: `${street}, ${number} - ${neighborhood}, ${city}/${state}`,
               cnpj: role === 'provider' ? cnpj : undefined,
               razao_social: role === 'provider' ? razaoSocial : undefined,
             }
@@ -449,28 +461,57 @@ function AuthContent() {
                         onChange={(e) => setPhone(e.target.value)}
                         required
                       />
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="col-span-1">
-                          <Input
-                            label="CEP"
-                            placeholder="00000-000"
-                            icon={<MapPin size={16} />}
-                            value={cep}
-                            onChange={handleCepChange}
-                            required
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Input
-                            label="Endereço Completo"
-                            placeholder="Rua, Número, Bairro..."
-                            icon={<Home size={16} />}
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            required
-                            className={isFetchingCnpj ? 'animate-pulse opacity-60' : ''}
-                          />
-                        </div>
+                      <div className="space-y-4">
+                        <Input
+                          label="CEP"
+                          placeholder="00000-000"
+                          icon={<MapPin size={16} />}
+                          value={cep}
+                          onChange={handleCepChange}
+                          required
+                        />
+                        <Input
+                          label="Logradouro"
+                          placeholder="Rua/Avenida"
+                          icon={<Home size={16} />}
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input
+                          label="Número"
+                          placeholder="123"
+                          value={number}
+                          onChange={(e) => setNumber(e.target.value)}
+                          required
+                        />
+                        <Input
+                          label="Bairro"
+                          placeholder="Seu bairro"
+                          value={neighborhood}
+                          onChange={(e) => setNeighborhood(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <Input
+                          label="Cidade"
+                          placeholder="Cidade"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          required
+                        />
+                        <Input
+                          label="Estado (UF)"
+                          placeholder="SP"
+                          value={state}
+                          onChange={(e) => setState(e.target.value)}
+                          required
+                        />
                       </div>
                     </>
                   )}

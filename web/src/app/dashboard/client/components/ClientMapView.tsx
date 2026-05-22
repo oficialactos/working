@@ -111,55 +111,58 @@ export function ClientMapView() {
     setMounted(true);
     const fetchProviders = async (center: [number, number]) => {
       setLoading(true);
-      const { data } = await supabase
+      const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'provider');
 
-      if (data && data.some(p => p.latitude && p.longitude)) {
-        setProviders(data.filter(p => p.latitude && p.longitude));
-      } else {
-        // Simulação baseada na localização ATUAL (Lins ou onde o usuário estiver)
-        const mockProviders: Provider[] = [
-          {
-            id: 'mock-1',
-            full_name: 'Carlos Oliveira',
-            avatar_url: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&h=100&fit=crop',
-            rating_avg: 4.9,
-            rating_count: 24,
-            address: 'Próximo a você',
-            latitude: center[0] + 0.002,
-            longitude: center[1] + 0.002,
-            role: 'provider',
-            category: 'Eletricista'
-          },
-          {
-            id: 'mock-2',
-            full_name: 'Ana Silva',
-            avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-            rating_avg: 4.8,
-            rating_count: 15,
-            address: 'A 500m de distância',
-            latitude: center[0] - 0.001,
-            longitude: center[1] + 0.003,
-            role: 'provider',
-            category: 'Pintura'
-          },
-          {
-            id: 'mock-3',
-            full_name: 'Marcos Souza',
-            avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-            rating_avg: 5.0,
-            rating_count: 8,
-            address: 'A 200m de distância',
-            latitude: center[0] + 0.0015,
-            longitude: center[1] - 0.001,
-            role: 'provider',
-            category: 'Encanador'
-          }
-        ];
-        setProviders(mockProviders);
+      if (!profiles) {
+        setLoading(false);
+        return;
       }
+
+      // Processar perfis: se tiver coordenadas usa, se não tiver tenta geocodificar o endereço
+      const processedProviders: Provider[] = [];
+
+      for (const p of profiles) {
+        if (p.latitude && p.longitude) {
+          processedProviders.push(p);
+        } else if (p.address || p.cep) {
+          // Tenta geocodificar combinando Endereço e CEP para precisão total
+          try {
+            const query = `${p.address || ''} ${p.cep || ''}`.trim();
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+              headers: { 'User-Agent': 'Working-App-Agent' }
+            });
+            const geo = await res.json();
+            
+            if (geo && geo.length > 0) {
+              processedProviders.push({
+                ...p,
+                latitude: parseFloat(geo[0].lat),
+                longitude: parseFloat(geo[0].lon)
+              });
+            } else if (p.cep) {
+              // Segunda tentativa: apenas pelo CEP caso o logradouro tenha algum erro
+              const resCep = await fetch(`https://nominatim.openstreetmap.org/search?format=json&postalcode=${p.cep.replace(/\D/g, '')}&country=brazil&limit=1`, {
+                headers: { 'User-Agent': 'Working-App-Agent' }
+              });
+              const geoCep = await resCep.json();
+              if (geoCep && geoCep.length > 0) {
+                processedProviders.push({
+                  ...p,
+                  latitude: parseFloat(geoCep[0].lat),
+                  longitude: parseFloat(geoCep[0].lon)
+                });
+              }
+            }
+          } catch (e) {
+            console.error(`Erro ao localizar prestador ${p.full_name}:`, e);
+          }
+        }
+      }
+
+      setProviders(processedProviders);
       setLoading(false);
     };
 
@@ -170,7 +173,7 @@ export function ClientMapView() {
           const newCenter: [number, number] = [pos.coords.latitude, pos.coords.longitude];
           setMapCenter(newCenter);
           setUserLocation(newCenter);
-          fetchProviders(newCenter); // Busca ou simula baseado na localização real
+          fetchProviders(newCenter);
         },
         () => fetchProviders(mapCenter),
         { timeout: 15000, enableHighAccuracy: true }

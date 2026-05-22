@@ -219,9 +219,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       
       // Setup auth listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!session && mounted) {
           router.replace('/auth');
+        } else if (mounted) {
+          // Se o usuário foi atualizado ou fez login, recarregamos os dados
+          await checkUser();
         }
       });
       authSubscription = subscription;
@@ -313,7 +316,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="p-7 pb-3">
           <Link href="/" className="flex items-center gap-3 group">
             <span className="text-lg font-black tracking-tighter leading-none">
-              <span className="text-[#B8924A]">W</span><span className="text-foreground">orking</span>
+              <span className="text-[#B8924A]">W</span><span className="text-foreground">orking</span> <span className="text-[10px] text-[#B8924A]/50 font-black ml-1">v3</span>
             </span>
           </Link>
         </div>
@@ -368,7 +371,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             >
               <div className="w-10 h-10 rounded-[14px] bg-[#B8924A]/10 border border-[#B8924A]/20 flex items-center justify-center font-black text-sm text-[#B8924A] group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
                 {userData.avatarUrl ? (
-                  <img src={userData.avatarUrl} alt={userData.name} className="w-full h-full object-cover" />
+                  <img 
+                    src={userData.avatarUrl.includes('?') ? `${userData.avatarUrl}&t=${Date.now()}` : `${userData.avatarUrl}?t=${Date.now()}`} 
+                    alt={userData.name} 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   userData.initials
                 )}
