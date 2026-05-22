@@ -148,7 +148,7 @@ function AuthContent() {
           }
         }
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+        const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin);
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -594,6 +594,11 @@ function AuthContent() {
       </div>
     </div>
   );
+}
+
+function normalizeSiteUrl(value: string) {
+  const url = value.trim();
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
 export default function AuthPage() {
