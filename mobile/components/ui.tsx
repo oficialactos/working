@@ -14,9 +14,11 @@ import {
   View
 } from "react-native";
 
-import { colors, radius } from "@/lib/theme";
+import { colors, radius, useTheme } from "@/lib/theme";
 
 export function Screen({ children }: { children: React.ReactNode }) {
+  useTheme();
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {children}
@@ -49,6 +51,8 @@ export function AppScroll({ children }: { children: React.ReactNode }) {
 }
 
 export function Card({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "gold" }) {
+  useTheme();
+
   return (
     <View
       style={{
@@ -122,6 +126,8 @@ export function Pill({ children, tone = "gold" }: { children: React.ReactNode; t
 }
 
 export function Title({ children }: { children: React.ReactNode }) {
+  useTheme();
+
   return (
     <Text selectable style={{ color: colors.gold, fontSize: 34, lineHeight: 38, fontWeight: "900", letterSpacing: 0 }}>
       {children}
@@ -130,6 +136,8 @@ export function Title({ children }: { children: React.ReactNode }) {
 }
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
+  useTheme();
+
   return (
     <Text selectable style={{ color: colors.text, fontSize: 20, lineHeight: 25, fontWeight: "900", letterSpacing: 0 }}>
       {children}
@@ -138,6 +146,8 @@ export function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export function Label({ children }: { children: React.ReactNode }) {
+  useTheme();
+
   return (
     <Text selectable style={{ color: colors.muted, fontSize: 11, fontWeight: "900", letterSpacing: 0, textTransform: "uppercase" }}>
       {children}
@@ -146,6 +156,8 @@ export function Label({ children }: { children: React.ReactNode }) {
 }
 
 export function Body({ children }: { children: React.ReactNode }) {
+  useTheme();
+
   return (
     <Text selectable style={{ color: colors.muted, fontSize: 15, lineHeight: 23, fontWeight: "700" }}>
       {children}
@@ -154,6 +166,8 @@ export function Body({ children }: { children: React.ReactNode }) {
 }
 
 export function Input(props: TextInputProps & { label: string; autoGrow?: boolean }) {
+  useTheme();
+
   const { label, autoGrow = false, onContentSizeChange, style, ...inputProps } = props;
   const { width } = useWindowDimensions();
   const [contentHeight, setContentHeight] = React.useState(0);
@@ -225,6 +239,8 @@ export function Button({
   onPress?: () => void;
   tone?: "primary" | "secondary" | "danger";
 }) {
+  useTheme();
+
   const backgroundColor = tone === "primary" ? colors.gold : tone === "danger" ? "rgba(249,112,102,0.14)" : colors.cardElevated;
   const borderColor = tone === "primary" ? colors.gold : tone === "danger" ? "rgba(249,112,102,0.28)" : colors.border;
   const textColor = tone === "danger" ? colors.danger : colors.text;

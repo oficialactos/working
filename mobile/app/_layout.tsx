@@ -5,14 +5,26 @@ import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
 
 import { AuthProvider } from "@/context/auth";
-import { colors } from "@/lib/theme";
+import { colors, getStatusBarStyle, ThemeProvider, useTheme } from "@/lib/theme";
 
 LogBox.ignoreLogs(["props.pointerEvents is deprecated. Use style.pointerEvents"]);
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="light" />
+    <ThemeProvider>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+function RootNavigator() {
+  const { mode } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={getStatusBarStyle(mode)} />
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: colors.background },
@@ -26,6 +38,6 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="request/[id]" options={{ title: "Serviço", headerShown: false }} />
       </Stack>
-    </AuthProvider>
+    </>
   );
 }

@@ -9,7 +9,7 @@ import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TextIn
 import { Body, Button, Card, Input, Label, Pill, Screen, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
-import { colors, radius } from "@/lib/theme";
+import { colors, radius, useTheme } from "@/lib/theme";
 
 type ServiceRequest = {
   id: string;
@@ -124,6 +124,7 @@ export default function ProfileScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
   const { role, signOut, user } = useAuth();
+  const { mode, toggleMode } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || "");
   const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
   const [phone, setPhone] = useState(user?.user_metadata?.phone || "");
@@ -548,6 +549,45 @@ export default function ProfileScreen() {
                   ) : null}
                 </View>
               )}
+            </Card>
+
+            <Card>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+                <View style={{ flex: 1, gap: 5 }}>
+                  <SectionTitle>Aparência</SectionTitle>
+                  <Body>{mode === "dark" ? "Modo escuro ativo." : "Modo claro ativo."}</Body>
+                </View>
+                <Pressable
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: mode === "dark" }}
+                  onPress={toggleMode}
+                  style={({ pressed }) => ({
+                    width: 64,
+                    height: 36,
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    backgroundColor: mode === "dark" ? colors.gold : colors.input,
+                    justifyContent: "center",
+                    padding: 4,
+                    opacity: pressed ? 0.78 : 1
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      alignSelf: mode === "dark" ? "flex-end" : "flex-start",
+                      backgroundColor: mode === "dark" ? colors.background : colors.gold
+                    }}
+                  >
+                    <Ionicons name={mode === "dark" ? "moon" : "sunny"} size={15} color={mode === "dark" ? colors.gold : colors.text} />
+                  </View>
+                </Pressable>
+              </View>
             </Card>
 
             <Card>

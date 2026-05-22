@@ -6,12 +6,13 @@ import React from "react";
 import { Pressable, Text, View, useWindowDimensions } from "react-native";
 
 import { useAuth } from "@/context/auth";
-import { colors } from "@/lib/theme";
+import { colors, useTheme } from "@/lib/theme";
 
 type TabIconName = React.ComponentProps<typeof Ionicons>["name"];
 
 export default function TabsLayout() {
   const { loading, role, session } = useAuth();
+  useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
 
