@@ -1,4 +1,11 @@
 {
-  "version": 2,
-  "framework": "nextjs"
+  "installCommand": "cd interface && npm ci",
+  "buildCommand": "cd interface && npm run build:web",
+  "outputDirectory": "interface/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
