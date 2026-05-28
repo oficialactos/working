@@ -57,6 +57,7 @@ import {
   type GestureResponderEvent,
   type LayoutChangeEvent
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Body, EmptyState, Screen } from "@/components/ui";
 import { useAuth } from "@/context/auth";
@@ -154,6 +155,7 @@ export default function ChatScreen() {
   const navigation = useNavigation() as { setOptions: (options: { tabBarHidden?: boolean }) => void };
   const { mode } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isDesktop = width >= 900;
   const isLight = mode === "light";
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -217,12 +219,9 @@ export default function ChatScreen() {
   }, [messageSearchTextByChatId, searchQuery, user, visibleChats]);
   const showConversation = isDesktop || Boolean(selectedChat);
   const isConversationFullscreen = !isDesktop && Boolean(selectedChat);
-  const useFixedMobileComposer = !isDesktop && isConversationFullscreen;
-  const composerKeyboardInset = useFixedMobileComposer ? keyboardInset : 0;
-  const mobileComposerHeight = 76;
-  const messagesBottomPadding = useFixedMobileComposer
-    ? mobileComposerHeight + (composerKeyboardInset > 0 ? 58 : 24)
-    : 16;
+  const composerKeyboardInset = Platform.OS === "web" && isConversationFullscreen ? keyboardInset : 0;
+  const composerBottomPadding = isConversationFullscreen ? Math.max(insets.bottom, 8) : 12;
+  const messagesBottomPadding = isConversationFullscreen ? 14 : 16;
   const audioRecordingDurationMillis = Platform.OS === "web" ? webAudioRecordingDurationMillis : recorderState.durationMillis;
 
   const updateMobileKeyboardInset = (useFallback: boolean) => {
@@ -1217,7 +1216,7 @@ export default function ChatScreen() {
                       onPress={() => {
                         if (selectedMessageAction) setSelectedMessageAction(null);
                       }}
-                      style={{ flex: 1 }}
+                      style={{ flex: 1, minHeight: 0 }}
                     >
                     <ScrollView
                       ref={messagesScrollRef}
@@ -1285,23 +1284,16 @@ export default function ChatScreen() {
 
                     <View
                       style={{
-                        padding: 12,
+                        paddingTop: 12,
+                        paddingHorizontal: 12,
+                        paddingBottom: composerBottomPadding,
                         borderTopWidth: 1,
                         borderTopColor: colors.border,
                         backgroundColor: colors.card,
                         gap: 10,
+                        flexShrink: 0,
                         zIndex: 5,
-                        ...(useFixedMobileComposer
-                          ? ({
-                              position: "absolute",
-                              left: 0,
-                              right: 0,
-                              bottom: composerKeyboardInset,
-                              width: "100%",
-                              minHeight: mobileComposerHeight,
-                              boxShadow: "0 -8px 18px rgba(0,0,0,0.08)"
-                            } as any)
-                          : null)
+                        ...(composerKeyboardInset > 0 ? { marginBottom: composerKeyboardInset } : null)
                       }}
                     >
                       {pendingMedia ? (
@@ -1837,7 +1829,7 @@ function ChatCameraModal({
   };
 
   const takePhoto = async () => {
-    const photo = await cameraRef.current?.takePictureAsync({ quality: 0.85 });
+    const photo = await cameraRef.current?.takePictureAsync({ isImageMirror: false, mirror: false, quality: 0.85 });
     if (!photo?.uri) return;
 
     onCaptured({
@@ -1892,7 +1884,7 @@ function ChatCameraModal({
         </Screen>
       ) : (
         <View style={{ flex: 1, backgroundColor: "#000000" }}>
-          <CameraView ref={cameraRef} enableTorch={flashEnabled && facing === "back"} facing={facing} mode={mode} style={{ flex: 1 }} videoQuality="720p" />
+          <CameraView ref={cameraRef} enableTorch={flashEnabled && facing === "back"} facing={facing} mirror={false} mode={mode} style={{ flex: 1 }} videoQuality="720p" />
 
           <View style={{ position: "absolute", top: 42, left: 18, right: 18, flexDirection: "row", justifyContent: "center", gap: 12 }}>
             <Pressable

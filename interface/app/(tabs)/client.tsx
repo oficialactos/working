@@ -602,7 +602,7 @@ function CameraCaptureScreen({
   const canRecordVideo = Platform.OS !== "web";
 
   const takePhoto = async () => {
-    const photo = await cameraRef.current?.takePictureAsync({ quality: 0.85 });
+    const photo = await cameraRef.current?.takePictureAsync({ isImageMirror: false, mirror: false, quality: 0.85 });
     if (!photo?.uri) return;
 
     onCaptured({
@@ -656,6 +656,7 @@ function CameraCaptureScreen({
         <CameraView
           ref={cameraRef}
           facing={facing}
+          mirror={false}
           mode={mode}
           style={{ flex: 1 }}
           videoQuality="720p"
