@@ -6,6 +6,7 @@ import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 
+import { normalizeServices, ServiceSelector } from "@/components/service-selector";
 import { Body, Button, Card, Input, Label, Pill, Screen, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
@@ -132,6 +133,9 @@ export default function ProfileScreen() {
   const [state, setState] = useState(user?.user_metadata?.state || "");
   const [locationText, setLocationText] = useState(user?.user_metadata?.location_label || "");
   const [cpfCnpj, setCpfCnpj] = useState(user?.user_metadata?.cpf_cnpj || "");
+  const [serviceCategories, setServiceCategories] = useState<string[]>(
+    Array.isArray(user?.user_metadata?.service_categories) ? user.user_metadata.service_categories : []
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -169,6 +173,18 @@ export default function ProfileScreen() {
         setCpfCnpj(data.cpf_cnpj || "");
       }
 
+      if (role === "provider") {
+        const { data: providerData, error: providerError } = await supabase
+          .from("provider_profiles")
+          .select("categories")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!providerError && providerData) {
+          setServiceCategories(Array.isArray(providerData.categories) ? providerData.categories : []);
+        }
+      }
+
       setLoading(false);
       if (!locationRequestedRef.current) {
         locationRequestedRef.current = true;
@@ -194,7 +210,7 @@ export default function ProfileScreen() {
         console.error("Erro ao buscar histórico de pedidos", error);
         setMessage([error.message, error.details, error.hint].filter(Boolean).join(" "));
       } else {
-        setRequests((data || []) as ServiceRequest[]);
+        setRequests(((data || []) as ServiceRequest[]).filter(shouldShowRequestInHistory));
       }
 
       setRequestsLoading(false);
@@ -233,7 +249,8 @@ export default function ProfileScreen() {
           full_name: fullName.trim() || user.user_metadata?.full_name || user.email,
           avatar_url: avatarUrl || user.user_metadata?.avatar_url || null,
           city: deviceCity || null,
-          state: deviceState || null
+          state: deviceState || null,
+          location: `POINT(${position.coords.longitude} ${position.coords.latitude})`
         },
         { onConflict: "id" }
       );
@@ -373,6 +390,7 @@ export default function ProfileScreen() {
     setSaving(true);
     setMessage(null);
 
+    const providerCategories = normalizeServices(serviceCategories);
     const payload = {
       id: user.id,
       role,
@@ -385,8 +403,21 @@ export default function ProfileScreen() {
     };
 
     const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
+    let providerError: { message: string; details?: string | null; hint?: string | null } | null = null;
 
-    if (!error) {
+    if (!error && role === "provider") {
+      const { error: categoriesError } = await supabase.from("provider_profiles").upsert(
+        {
+          id: user.id,
+          categories: providerCategories
+        },
+        { onConflict: "id" }
+      );
+
+      providerError = categoriesError;
+    }
+
+    if (!error && !providerError) {
       const { error: metadataError } = await supabase.auth.updateUser({
         data: {
           full_name: payload.full_name,
@@ -395,6 +426,7 @@ export default function ProfileScreen() {
           city: payload.city,
           state: payload.state,
           cpf_cnpj: payload.cpf_cnpj,
+          service_categories: role === "provider" ? providerCategories : undefined,
           role
         }
       });
@@ -408,9 +440,10 @@ export default function ProfileScreen() {
 
     setSaving(false);
 
-    if (error) {
-      console.error("Erro ao salvar perfil", error);
-      setMessage([error.message, error.details, error.hint].filter(Boolean).join(" "));
+    const saveError = error || providerError;
+    if (saveError) {
+      console.error("Erro ao salvar perfil", saveError);
+      setMessage([saveError.message, saveError.details, saveError.hint].filter(Boolean).join(" "));
       return;
     }
 
@@ -451,6 +484,7 @@ export default function ProfileScreen() {
   };
 
   const locationLabel = [city, state].filter(Boolean).join(" / ") || locationText || "Não informada";
+  const historyRequests = requests.filter(shouldShowRequestInHistory);
   const historyCopy =
     role === "provider"
       ? {
@@ -522,7 +556,7 @@ export default function ProfileScreen() {
                   >
                     <View style={{ flex: 1, gap: 5 }}>
                     <SectionTitle>Dados do perfil</SectionTitle>
-                    <Body>Altere as informações que aparecem no seu perfil de cliente.</Body>
+                    <Body>Altere as informações que aparecem no seu perfil.</Body>
                   </View>
                     <Ionicons name={detailsOpen ?"chevron-up" : "chevron-down"} size={24} color={colors.gold} />
                   </Pressable>
@@ -532,6 +566,13 @@ export default function ProfileScreen() {
                   <Input label="Nome completo" value={fullName} onChangeText={setFullName} placeholder="Seu nome" autoCapitalize="words" />
                   <Input label="Telefone / WhatsApp" value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" />
                   <Input label="CPF ou CNPJ" value={cpfCnpj} onChangeText={setCpfCnpj} placeholder="Documento" keyboardType="number-pad" />
+
+                  {role === "provider" ? (
+                    <View style={{ gap: 10 }}>
+                      <Label>Serviços oferecidos</Label>
+                      <ServiceSelector selectedServices={serviceCategories} onChange={setServiceCategories} />
+                    </View>
+                  ) : null}
 
                   <View
                     style={{
@@ -657,8 +698,8 @@ export default function ProfileScreen() {
                   <View style={{ gap: 12 }}>
                     {requestsLoading ? (
                       <ActivityIndicator color={colors.gold} />
-                    ) : requests.length ? (
-                      requests.map((request) => <RequestHistoryItem key={request.id} onPress={() => setSelectedRequest(request)} request={request} />)
+                    ) : historyRequests.length ? (
+                      historyRequests.map((request) => <RequestHistoryItem key={request.id} onPress={() => setSelectedRequest(request)} request={request} />)
                     ) : (
                       <View
                         style={{
@@ -696,6 +737,11 @@ export default function ProfileScreen() {
       <RequestDetailsModal
         fallbackLocation={locationLabel}
         onClose={() => setSelectedRequest(null)}
+        onDeleted={(requestId) => {
+          setRequests((current) => current.filter((item) => item.id !== requestId));
+          setSelectedRequest(null);
+          setMessage("Pedido removido do histórico com sucesso.");
+        }}
         onSaved={(updated) => {
           setRequests((current) => current.map((item) => (item.id === updated.id ? updated : item)));
           setSelectedRequest(updated);
@@ -898,12 +944,14 @@ function RequestHistoryItem({ onPress, request }: { onPress: () => void; request
 function RequestDetailsModal({
   fallbackLocation,
   onClose,
+  onDeleted,
   onSaved,
   request,
   userId
 }: {
   fallbackLocation?: string;
   onClose: () => void;
+  onDeleted: (requestId: string) => void;
   onSaved: (request: ServiceRequest) => void;
   request: ServiceRequest | null;
   userId: string;
@@ -916,6 +964,7 @@ function RequestDetailsModal({
   const [media, setMedia] = useState<string[]>([]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "danger"; message: string } | null>(null);
   const [saveAlert, setSaveAlert] = useState<{ title: string; message: string; tone: "success" | "danger" } | null>(null);
   const activeRequestIdRef = useRef<string | null>(null);
@@ -942,6 +991,7 @@ function RequestDetailsModal({
       setFullscreenImage(null);
       setFeedback(null);
       setSaveAlert(null);
+      setCanceling(false);
     }
   }, [request]);
 
@@ -970,6 +1020,44 @@ function RequestDetailsModal({
 
   const showSaveAlert = (title: string, message: string, tone: "success" | "danger") => {
     setSaveAlert({ title, message, tone });
+  };
+
+  const cancelRequest = async () => {
+    if (!request || request.status !== "open") return;
+
+    setCanceling(true);
+    setFeedback(null);
+
+    try {
+      const { error } = await supabase
+        .from("service_requests")
+        .delete()
+        .eq("id", request.id)
+        .eq("client_id", userId)
+        .eq("status", "open");
+
+      if (error) {
+        console.error("Erro ao cancelar pedido", error);
+        const errorMessage = [error.message, error.details, error.hint].filter(Boolean).join(" ") || "Não foi possível cancelar o pedido.";
+        showSaveAlert("Erro ao cancelar", errorMessage, "danger");
+        setFeedback({ tone: "danger", message: errorMessage });
+        return;
+      }
+
+      const mediaPaths = (request.media_urls || []).map(getRequestMediaStoragePath).filter(Boolean) as string[];
+      if (mediaPaths.length) {
+        await supabase.storage.from("request-media").remove(mediaPaths);
+      }
+
+      onDeleted(request.id);
+    } catch (error) {
+      console.error("Erro inesperado ao cancelar pedido", error);
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível cancelar o pedido.";
+      showSaveAlert("Erro ao cancelar", errorMessage, "danger");
+      setFeedback({ tone: "danger", message: errorMessage });
+    } finally {
+      setCanceling(false);
+    }
   };
 
   const saveRequest = async () => {
@@ -1151,6 +1239,11 @@ function RequestDetailsModal({
 
             {feedback ? <RequestFeedback tone={feedback.tone} message={feedback.message} /> : null}
             <Button loading={saving} disabled={saving} onPress={saveRequest}>Salvar alterações do pedido</Button>
+            {request?.status === "open" ? (
+              <Button tone="danger" loading={canceling} disabled={saving || canceling} onPress={cancelRequest}>
+                Cancelar pedido
+              </Button>
+            ) : null}
           </ScrollView>
         </Pressable>
         <Modal animationType="fade" transparent visible={Boolean(fullscreenImage)} onRequestClose={() => setFullscreenImage(null)}>
@@ -1312,6 +1405,10 @@ function statusLabel(status: string) {
   return labels[status] || status;
 }
 
+function shouldShowRequestInHistory(request: ServiceRequest) {
+  return request.status !== "cancelled";
+}
+
 function formatRequestDate(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -1328,6 +1425,15 @@ function sanitizeLocation(value: string) {
 
 function isImageUrl(url: string) {
   return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(url);
+}
+
+function getRequestMediaStoragePath(url: string) {
+  const marker = "/storage/v1/object/public/request-media/";
+  const markerIndex = url.indexOf(marker);
+  if (markerIndex < 0) return null;
+
+  const rawPath = url.slice(markerIndex + marker.length).split("?")[0];
+  return rawPath ? decodeURIComponent(rawPath) : null;
 }
 
 async function uploadRequestMediaAssets(assets: ImagePicker.ImagePickerAsset[], userId: string, requestId: string) {
@@ -1450,7 +1556,7 @@ function StatusMessage({ message }: { message: string }) {
     <Card tone={isSuccess ?"gold" : "default"}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Ionicons name={isSuccess ?"checkmark-circle" : "alert-circle"} size={20} color={isSuccess ?colors.success : colors.danger} />
-        <Text selectable style={{ flex: 1, color: isSuccess ?colors.success : colors.danger, fontSize: 14, fontWeight: "900", lineHeight: 20 }}>
+        <Text selectable style={{ flex: 1, color: colors.text, fontSize: 14, fontWeight: "900", lineHeight: 20 }}>
           {message}
         </Text>
       </View>

@@ -177,7 +177,7 @@ export default function NewRequestScreen() {
               padding: 14
             }}
           >
-            <Text selectable style={{ color: colors.danger, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
+            <Text selectable style={{ color: colors.text, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
               {message}
             </Text>
           </View>

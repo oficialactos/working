@@ -10,7 +10,7 @@ import { Modal, Platform, Pressable, Text, TextInput, View } from "react-native"
 import { AppScroll, Body, Button, Card, Pill, Screen, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/context/auth";
 import { supabase } from "@/lib/supabase";
-import { colors } from "@/lib/theme";
+import { colors, useTheme } from "@/lib/theme";
 
 type RequestField = "category" | "title" | "description" | "media";
 type ServiceCategory = {
@@ -80,42 +80,47 @@ const questions: RequestQuestion[] = [
   }
 ];
 
-const SuccessModal = ({ message, onClose }: { message: string | null; onClose: () => void }) => (
-  <Modal animationType="fade" transparent visible={Boolean(message)} onRequestClose={onClose}>
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.72)",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24
-      }}
-    >
+function SuccessModal({ message, onClose }: { message: string | null; onClose: () => void }) {
+  const { mode } = useTheme();
+  const isLight = mode === "light";
+
+  return (
+    <Modal animationType="fade" transparent visible={Boolean(message)} onRequestClose={onClose}>
       <View
         style={{
-          width: "100%",
-          maxWidth: 380,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: "rgba(50,213,131,0.28)",
-          backgroundColor: "rgba(13,17,24,0.96)",
-          gap: 18,
-          padding: 22
+          flex: 1,
+          backgroundColor: isLight ? "rgba(25,23,19,0.42)" : "rgba(0,0,0,0.72)",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24
         }}
       >
-        <View style={{ gap: 8 }}>
-          <Text selectable style={{ color: colors.success, fontSize: 20, lineHeight: 26, fontWeight: "900" }}>
-            Pedido criado
-          </Text>
-          <Text selectable style={{ color: colors.text, fontSize: 15, lineHeight: 22, fontWeight: "800" }}>
-            {message}
-          </Text>
+        <View
+          style={{
+            width: "100%",
+            maxWidth: 380,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: "rgba(50,213,131,0.34)",
+            backgroundColor: colors.card,
+            gap: 18,
+            padding: 22
+          }}
+        >
+          <View style={{ gap: 8 }}>
+            <Text selectable style={{ color: colors.success, fontSize: 20, lineHeight: 26, fontWeight: "900" }}>
+              Pedido criado
+            </Text>
+            <Text selectable style={{ color: colors.text, fontSize: 15, lineHeight: 22, fontWeight: "800" }}>
+              {message}
+            </Text>
+          </View>
+          <Button onPress={onClose}>OK</Button>
         </View>
-        <Button onPress={onClose}>OK</Button>
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+}
 
 export default function ClientScreen() {
   const navigation = useNavigation();
@@ -414,7 +419,6 @@ export default function ClientScreen() {
         <Text selectable style={{ color: colors.text, fontSize: 34, lineHeight: 38, fontWeight: "900", letterSpacing: 0 }}>
           Olá, {firstName}!
         </Text>
-        <Body>Conte o que você precisa e encontraremos prestadores próximos para ajudar.</Body>
       </View>
 
       <View style={{ gap: 16 }}>
@@ -450,7 +454,7 @@ export default function ClientScreen() {
               padding: 14
             }}
           >
-            <Text selectable style={{ color: message.includes("criado") ?colors.success : colors.danger, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
+            <Text selectable style={{ color: colors.text, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
               {message}
             </Text>
           </View>

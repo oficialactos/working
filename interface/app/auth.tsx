@@ -14,6 +14,7 @@ import {
 } from "react-native";
 
 import { Screen } from "@/components/ui";
+import { normalizeServices, ServiceSelector } from "@/components/service-selector";
 import { checkSupabaseConnectivity, supabase, supabaseConfig } from "@/lib/supabase";
 import { colors, useTheme } from "@/lib/theme";
 
@@ -31,7 +32,6 @@ type RegisterField =
   | "clientNeed"
   | "cnpj"
   | "companyName"
-  | "serviceArea"
   | "serviceDescription";
 
 type RegisterQuestion = {
@@ -43,6 +43,13 @@ type RegisterQuestion = {
   keyboardType?: TextInputProps["keyboardType"];
   secureTextEntry?: boolean;
   autoCapitalize?: TextInputProps["autoCapitalize"];
+};
+
+type AddressFields = {
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
 };
 
 const questionCopy: Record<RegisterField, Omit<RegisterQuestion, "field">> = {
@@ -119,12 +126,6 @@ const questionCopy: Record<RegisterField, Omit<RegisterQuestion, "field">> = {
     required: true,
     placeholder: "Nome da empresa"
   },
-  serviceArea: {
-    title: "Em qual cidade ou região você atende?",
-    helper: "Ajuda clientes próximos a encontrarem seus serviços.",
-    required: true,
-    placeholder: "Ex.: São Paulo/SP"
-  },
   serviceDescription: {
     title: "Quais serviços você oferece?",
     helper: "Opcional. Descreva em poucas palavras suas principais especialidades.",
@@ -134,7 +135,42 @@ const questionCopy: Record<RegisterField, Omit<RegisterQuestion, "field">> = {
 };
 
 const clientFlow: RegisterField[] = ["role", "name", "phone", "cpfCnpj", "email", "password", "cep", "number"];
-const providerFlow: RegisterField[] = ["role", "name", "phone", "cpfCnpj", "email", "password", "companyName", "serviceArea", "cep", "number", "serviceDescription"];
+const providerFlow: RegisterField[] = ["role", "name", "phone", "cpfCnpj", "email", "password", "companyName", "cep", "number", "serviceDescription"];
+
+function formatCpfCnpj(raw: string) {
+  const digits = raw.replace(/\D/g, "").slice(0, 14);
+
+  if (digits.length <= 11) {
+    return digits
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+  }
+
+  return digits
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3/$4")
+    .replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d)/, "$1.$2.$3/$4-$5");
+}
+
+function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, "").slice(0, 11);
+
+  if (digits.length <= 2) {
+    return digits.replace(/^(\d{1,2})/, "($1");
+  }
+
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/^(\(\d{2}\) \d{4})(\d)/, "$1-$2");
+  }
+
+  return digits
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/^(\(\d{2}\) \d{5})(\d)/, "$1-$2");
+}
 
 export default function AuthScreen() {
   const { mode: themeMode } = useTheme();
@@ -152,8 +188,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [serviceArea, setServiceArea] = useState("");
-  const [serviceDescription, setServiceDescription] = useState("");
+  const [serviceCategories, setServiceCategories] = useState<string[]>([]);
   const [clientNeed, setClientNeed] = useState("");
   const [cep, setCep] = useState("");
   const [street, setStreet] = useState("");
@@ -189,28 +224,34 @@ export default function AuthScreen() {
     clientNeed,
     cnpj,
     companyName,
-    serviceArea,
-    serviceDescription
+    serviceDescription: serviceCategories.join(", ")
   };
 
   const setters: Partial<Record<RegisterField, (value: string) => void>> = {
     name: setName,
-    phone: setPhone,
-    cpfCnpj: setCpfCnpj,
+    phone: (value) => setPhone(formatPhone(value)),
+    cpfCnpj: (value) => setCpfCnpj(formatCpfCnpj(value)),
     email: setEmail,
     password: setPassword,
     cep: lookupCep,
     number: setNumber,
     clientNeed: setClientNeed,
-    cnpj: setCnpj,
-    companyName: setCompanyName,
-    serviceArea: setServiceArea,
-    serviceDescription: setServiceDescription
+    cnpj: (value) => setCnpj(formatCpfCnpj(value)),
+    companyName: setCompanyName
   };
 
   const resetRegisterFlow = () => {
     setStep(0);
     setMessage(null);
+  };
+
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/");
   };
 
   const switchMode = () => {
@@ -262,6 +303,7 @@ export default function AuthScreen() {
       }
 
       const address = [street, number, neighborhood, city && state ?`${city}/${state}` : ""].filter(Boolean).join(", ");
+      const providerCategories = normalizeServices(serviceCategories);
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -280,8 +322,8 @@ export default function AuthScreen() {
             address,
             client_need: role === "client" ?clientNeed.trim() : undefined,
             razao_social: role === "provider" ?companyName.trim() : undefined,
-            service_area: role === "provider" ?serviceArea.trim() : undefined,
-            service_description: role === "provider" ?serviceDescription.trim() : undefined
+            service_categories: role === "provider" ?providerCategories : undefined,
+            service_description: role === "provider" ?providerCategories.join(", ") : undefined
           }
         }
       });
@@ -302,6 +344,18 @@ export default function AuthScreen() {
         );
 
         if (profileError) throw profileError;
+
+        if (role === "provider") {
+          const { error: providerError } = await supabase.from("provider_profiles").upsert(
+            {
+              id: data.user.id,
+              categories: providerCategories
+            },
+            { onConflict: "id" }
+          );
+
+          if (providerError) throw providerError;
+        }
       }
 
       if (!data.session) {
@@ -404,7 +458,7 @@ export default function AuthScreen() {
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, flexDirection: isWide ?"row" : "column" }}>
           <Pressable
-            onPress={() => router.back()}
+            onPress={goBack}
             style={({ pressed }) => ({
               position: "absolute",
               top: isWide ?28 : 22,
@@ -456,7 +510,7 @@ export default function AuthScreen() {
                       padding: 14
                     }}
                   >
-                    <Text selectable style={{ color: message.includes("criado") ?colors.success : colors.danger, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
+                    <Text selectable style={{ color: colors.text, fontSize: 13, fontWeight: "800", lineHeight: 20 }}>
                       {message}
                     </Text>
                   </View>
@@ -464,9 +518,21 @@ export default function AuthScreen() {
 
                 {mode === "register" ?(
                   <RegisterStep
+                    address={{
+                      street,
+                      neighborhood,
+                      city,
+                      state
+                    }}
                     currentQuestion={currentQuestion}
                     fetchingAddress={fetchingAddress}
                     isFinalStep={isFinalStep}
+                    onAddressChange={{
+                      city: setCity,
+                      neighborhood: setNeighborhood,
+                      state: (value) => setState(value.toUpperCase().slice(0, 2)),
+                      street: setStreet
+                    }}
                     onBack={backRegisterStep}
                     onNext={nextRegisterStep}
                     onRoleChange={(nextRole) => {
@@ -474,9 +540,11 @@ export default function AuthScreen() {
                       setStep(1);
                       setMessage(null);
                     }}
+                    onServiceCategoriesChange={setServiceCategories}
                     onSkip={skipStep}
                     progress={progress}
                     role={role}
+                    serviceCategories={serviceCategories}
                     step={step}
                     totalSteps={registerFlow.length}
                     value={values[currentField] ?? ""}
@@ -540,38 +608,48 @@ function LoginForm({
 }
 
 function RegisterStep({
+  address,
   currentQuestion,
   fetchingAddress,
   isFinalStep,
   loading,
+  onAddressChange,
   onBack,
   onChangeText,
   onNext,
   onRoleChange,
+  onServiceCategoriesChange,
   onSkip,
   progress,
   role,
+  serviceCategories,
   step,
   totalSteps,
   value
 }: {
+  address: AddressFields;
   currentQuestion: RegisterQuestion;
   fetchingAddress: boolean;
   isFinalStep: boolean;
   loading: boolean;
+  onAddressChange: Record<keyof AddressFields, (value: string) => void>;
   onBack: () => void;
   onChangeText?: (value: string) => void;
   onNext: () => void;
   onRoleChange: (role: Role) => void;
+  onServiceCategoriesChange: (services: string[]) => void;
   onSkip: () => void;
   progress: number;
   role: Role;
+  serviceCategories: string[];
   step: number;
   totalSteps: number;
   value: string;
 }) {
   const { mode } = useTheme();
   const isLight = mode === "light";
+  const shouldShowAddressFields =
+    currentQuestion.field === "cep" && (value.replace(/\D/g, "").length === 8 || Object.values(address).some(Boolean));
 
   return (
     <View style={{ gap: 20 }}>
@@ -608,6 +686,13 @@ function RegisterStep({
             onPress={() => onRoleChange("provider")}
           />
         </View>
+      ) : currentQuestion.field === "serviceDescription" ? (
+        <View style={{ gap: 8 }}>
+          <Text selectable style={{ color: isLight ? "#6F5630" : "rgba(247,242,232,0.44)", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+            Opcional
+          </Text>
+          <ServiceSelector selectedServices={serviceCategories} onChange={onServiceCategoriesChange} />
+        </View>
       ) : (
         <AuthField
           autoCapitalize={currentQuestion.autoCapitalize}
@@ -619,6 +704,49 @@ function RegisterStep({
           value={value}
         />
       )}
+
+      {shouldShowAddressFields ? (
+        <View style={{ gap: 12 }}>
+          <Text selectable style={{ color: isLight ? "#6F5630" : "rgba(247,242,232,0.44)", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+            Endereço encontrado
+          </Text>
+          <AuthField
+            autoCapitalize="words"
+            label="Rua"
+            onChangeText={onAddressChange.street}
+            placeholder={fetchingAddress ? "Buscando..." : "Rua"}
+            value={address.street}
+          />
+          <AuthField
+            autoCapitalize="words"
+            label="Bairro"
+            onChangeText={onAddressChange.neighborhood}
+            placeholder={fetchingAddress ? "Buscando..." : "Bairro"}
+            value={address.neighborhood}
+          />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <AuthField
+                autoCapitalize="words"
+                label="Cidade"
+                onChangeText={onAddressChange.city}
+                placeholder={fetchingAddress ? "Buscando..." : "Cidade"}
+                value={address.city}
+              />
+            </View>
+            <View style={{ width: 90 }}>
+              <AuthField
+                autoCapitalize="characters"
+                label="UF"
+                maxLength={2}
+                onChangeText={onAddressChange.state}
+                placeholder="UF"
+                value={address.state}
+              />
+            </View>
+          </View>
+        </View>
+      ) : null}
 
       <View style={{ flexDirection: "row", gap: 10 }}>
         {step > 0 ?<SecondaryButton onPress={onBack}>Voltar</SecondaryButton> : null}

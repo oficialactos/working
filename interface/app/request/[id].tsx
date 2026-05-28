@@ -35,6 +35,10 @@ type ServiceRequestDetails = {
   created_at?: string | null;
   media_urls?: string[] | null;
   client_id: string;
+  client?: {
+    avatar_url?: string | null;
+    full_name?: string | null;
+  } | null;
 };
 
 export default function RequestDetailScreen() {
@@ -43,6 +47,8 @@ export default function RequestDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [request, setRequest] = useState<ServiceRequestDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [canceling, setCanceling] = useState(false);
 
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
@@ -56,6 +62,7 @@ export default function RequestDetailScreen() {
     "Olá! Para te passar um orçamento preciso e detalhado, gostaria de agendar uma visita técnica sem compromisso para avaliar o local. Quais dias e horários ficariam melhores para você?"
   );
   const [price, setPrice] = useState("");
+  const [deadlineDays, setDeadlineDays] = useState("1");
   const [proposalDescription, setProposalDescription] = useState("");
   const [sending, setSending] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -69,6 +76,39 @@ export default function RequestDetailScreen() {
     setPrice(formatCurrencyInput(value));
   };
 
+  const handleDeadlineDaysChange = (value: string) => {
+    setDeadlineDays(value.replace(/\D/g, ""));
+  };
+
+  const handleCancelRequest = async () => {
+    if (!request || !user) return;
+
+    setCanceling(true);
+    setError(null);
+
+    const { error: deleteError } = await supabase
+      .from("service_requests")
+      .delete()
+      .eq("id", request.id)
+      .eq("client_id", user.id)
+      .eq("status", "open");
+
+    if (deleteError) {
+      setCanceling(false);
+      setError(deleteError.message || "Não foi possível cancelar o pedido.");
+      return;
+    }
+
+    const mediaPaths = (request.media_urls || []).map(getRequestMediaStoragePath).filter(Boolean) as string[];
+    if (mediaPaths.length) {
+      await supabase.storage.from("request-media").remove(mediaPaths);
+    }
+
+    setCanceling(false);
+    setCancelConfirmOpen(false);
+    router.replace("/client");
+  };
+
   useEffect(() => {
     const load = async () => {
       if (!id) return;
@@ -77,7 +117,7 @@ export default function RequestDetailScreen() {
       setLoading(true);
       const { data, error: queryError } = await supabase
         .from("service_requests")
-        .select("id,title,category,description,status,address_text,city,state,created_at,media_urls,client_id")
+        .select("id,title,category,description,status,address_text,city,state,created_at,media_urls,client_id,client:profiles!service_requests_client_id_fkey(full_name,avatar_url)")
         .eq("id", id)
         .single();
 
@@ -206,6 +246,12 @@ export default function RequestDetailScreen() {
       return;
     }
 
+    const parsedDeadlineDays = Number.parseInt(deadlineDays, 10);
+    if (!Number.isInteger(parsedDeadlineDays) || parsedDeadlineDays <= 0) {
+      setError("Por favor, digite um prazo estimado em dias.");
+      return;
+    }
+
     setSending(true);
     setError(null);
     setSuccessMessage(null);
@@ -219,6 +265,7 @@ export default function RequestDetailScreen() {
           provider_id: user.id,
           price: parsedPrice,
           description: proposalDescription.trim() || null,
+          deadline_days: parsedDeadlineDays,
           status: "pending"
         })
         .select("id")
@@ -255,7 +302,7 @@ export default function RequestDetailScreen() {
       }
 
       // 3. Send formatted budget message to the chat
-      const formattedMessage = `[ORÇAMENTO ENVIADO]\nValor: R$ ${formatCurrencyValue(parsedPrice)}\nDescrição: ${proposalDescription.trim() || "Sem descrição adicional."}`;
+      const formattedMessage = `[ORÇAMENTO ENVIADO]` + `\nValor: R$ ${formatCurrencyValue(parsedPrice)}` + `\nPrazo estimado: ${parsedDeadlineDays} dia${parsedDeadlineDays === 1 ? "" : "s"}` + `\nDescrição: ${proposalDescription.trim() || "Sem descrição adicional."}`;
       const { error: msgError } = await supabase
         .from("messages")
         .insert({
@@ -271,6 +318,7 @@ export default function RequestDetailScreen() {
         id: newProposal.id,
         price: parsedPrice,
         description: proposalDescription.trim() || null,
+        deadline_days: parsedDeadlineDays,
         status: "pending"
       });
       setExistingChat({ id: chatId, is_active: true });
@@ -287,6 +335,8 @@ export default function RequestDetailScreen() {
 
   const imageUrls = request?.media_urls?.filter(isImageUrl) || [];
   const otherMedia = request?.media_urls?.filter((url) => !isImageUrl(url)) || [];
+  const clientName = request?.client?.full_name || "Cliente";
+  const clientAvatarUrl = request?.client?.avatar_url;
   let location = "";
   if (request) {
     const addressText = request.address_text;
@@ -371,6 +421,36 @@ export default function RequestDetailScreen() {
 
         {request ? (
           <>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 2 }}>
+              <View
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 21,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  backgroundColor: colors.cardElevated,
+                  overflow: "hidden",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                {clientAvatarUrl ? (
+                  <Image source={{ uri: clientAvatarUrl }} contentFit="cover" style={{ width: "100%", height: "100%" }} />
+                ) : (
+                  <Text style={{ color: colors.gold, fontSize: 16, fontWeight: "900" }}>{clientName.slice(0, 1).toUpperCase()}</Text>
+                )}
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text selectable numberOfLines={1} style={{ color: colors.text, fontSize: 15, fontWeight: "900" }}>
+                  {clientName}
+                </Text>
+                <Text selectable style={{ color: colors.muted, fontSize: 12, fontWeight: "800" }}>
+                  Publicou este pedido
+                </Text>
+              </View>
+            </View>
+
             {imageUrls[0] ? (
               <Pressable onPress={() => openViewer(0)} style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}>
                 <Image
@@ -418,6 +498,18 @@ export default function RequestDetailScreen() {
               <InfoBlock label="Descrição" value={request.description || "Sem descrição."} />
             </Card>
 
+            {role === "client" && user?.id === request.client_id && request.status === "open" ? (
+              <Card>
+                <View style={{ gap: 12 }}>
+                  <SectionTitle>Gerenciar pedido</SectionTitle>
+                  <Body>Cancelar remove este pedido do sistema e ele deixa de aparecer para prestadores.</Body>
+                  <Button tone="danger" loading={canceling} disabled={canceling} onPress={() => setCancelConfirmOpen(true)}>
+                    Cancelar pedido
+                  </Button>
+                </View>
+              </Card>
+            ) : null}
+
             <Card>
               <SectionTitle>Mídias anexadas</SectionTitle>
               {imageUrls.length || otherMedia.length ? (
@@ -460,7 +552,7 @@ export default function RequestDetailScreen() {
                     <ActivityIndicator color={colors.gold} style={{ marginVertical: 10 }} />
                   ) : successMessage ? (
                     <View style={{ gap: 12 }}>
-                      <Text selectable style={{ color: colors.success, fontSize: 15, fontWeight: "800", lineHeight: 22 }}>
+                      <Text selectable style={{ color: colors.text, fontSize: 15, fontWeight: "800", lineHeight: 22 }}>
                         {successMessage}
                       </Text>
                       <View style={{ flexDirection: "row", gap: 10 }}>
@@ -596,6 +688,13 @@ export default function RequestDetailScreen() {
                             keyboardType="numeric"
                           />
                           <Input
+                            label="Prazo estimado (dias)"
+                            value={deadlineDays}
+                            onChangeText={handleDeadlineDaysChange}
+                            placeholder="1"
+                            keyboardType="numeric"
+                          />
+                          <Input
                             label="Descrição / Detalhes do orçamento"
                             value={proposalDescription}
                             onChangeText={setProposalDescription}
@@ -644,7 +743,65 @@ export default function RequestDetailScreen() {
         initialIndex={viewerIndex}
         onClose={() => setViewerVisible(false)}
       />
+      <CancelRequestModal
+        loading={canceling}
+        onCancel={() => setCancelConfirmOpen(false)}
+        onConfirm={handleCancelRequest}
+        visible={cancelConfirmOpen}
+      />
     </Screen>
+  );
+}
+
+function CancelRequestModal({
+  loading,
+  onCancel,
+  onConfirm,
+  visible
+}: {
+  loading: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  visible: boolean;
+}) {
+  return (
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onCancel}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.48)",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 20
+        }}
+      >
+        <View
+          style={{
+            width: "100%",
+            maxWidth: 390,
+            borderRadius: radius.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.card,
+            gap: 16,
+            padding: 20
+          }}
+        >
+          <View style={{ gap: 8 }}>
+            <SectionTitle>Cancelar pedido?</SectionTitle>
+            <Body>Essa ação remove o pedido do sistema e não pode ser desfeita.</Body>
+          </View>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <Button tone="secondary" disabled={loading} onPress={onCancel}>Voltar</Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button tone="danger" loading={loading} disabled={loading} onPress={onConfirm}>Cancelar</Button>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -795,6 +952,19 @@ function formatCurrencyInput(value: string) {
 function parseCurrencyValue(value: string) {
   const normalized = value.replace(/\./g, "").replace(",", ".");
   return Number(normalized);
+}
+
+function getRequestMediaStoragePath(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+    const marker = "/request-media/";
+    const markerIndex = parsedUrl.pathname.indexOf(marker);
+    if (markerIndex === -1) return null;
+
+    return decodeURIComponent(parsedUrl.pathname.slice(markerIndex + marker.length));
+  } catch {
+    return null;
+  }
 }
 
 function formatCurrencyValue(value: number) {

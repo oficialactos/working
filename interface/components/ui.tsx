@@ -243,7 +243,7 @@ export function Button({
 
   const backgroundColor = tone === "primary" ? colors.gold : tone === "danger" ? "rgba(249,112,102,0.14)" : colors.cardElevated;
   const borderColor = tone === "primary" ? colors.gold : tone === "danger" ? "rgba(249,112,102,0.28)" : colors.border;
-  const textColor = tone === "danger" ? colors.danger : colors.text;
+  const textColor = tone === "primary" ? "#FFFFFF" : tone === "danger" ? colors.danger : colors.text;
 
   return (
     <Pressable
